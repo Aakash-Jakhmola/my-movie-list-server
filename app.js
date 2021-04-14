@@ -14,22 +14,22 @@ app.use(express.json()) ;
 app.use(express.urlencoded());
 
 mongoose.connect(process.env.DB_URI, {useNewUrlParser:true, useUnifiedTopology:true}) ;
+const con = mongoose.connection
 
-app.get('/', function(req, res){
-    res.render("home", {data : []}) ;
-    const user1 = User({
-        name : "aakash",
-        email : "aakash001jakhmola@gmail.com",
+con.on('error', console.error.bind(console, 'connection error:'));
+con.once('open', ()=> {
+  console.log("Connected to mongodb")
+});
 
-    });
-    user1.save().then(()=> {console.log('Successful');}) ;
-}) ;
+const userRouter = require('./routes/users');
+
+app.use('/users',userRouter);
 
 app.post('/', function(req, res){
     const movieName = req.body.movieName ;
     const url = 'https://api.themoviedb.org/3/search/movie?language=en-US&api_key='+apiKey+'&query=' + movieName ;
     https.get(url, (response) => {
-        if(response.statusCode === 2000) {
+        if(response.statusCode === 200) {
             console.log('Successfully retrieved the data');
            
         } else {
@@ -44,8 +44,6 @@ app.post('/', function(req, res){
     
 }) ;
 
-let port = process.env.PORT ;
-if(port == null)
-    port = 3000 ;
+let port = process.env.PORT || 3000;
 
-app.listen(3000, () => console.log('server started')) ;
+app.listen(port, () => console.log('server started')) ;

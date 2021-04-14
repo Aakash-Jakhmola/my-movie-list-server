@@ -19,10 +19,10 @@ const userSchema = mongoose.Schema({
     	validate: [ValidateEmail, 'Please fill a valid email address'],
 		//match: [/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/, 'Please fill a valid email address']
 	},
-    moviesList : [{
+    moviesList : [new mongoose.Schema({
         movieId : Number, 
-        rating : Number
-    }],
+        rating : Number,
+    },{ _id: false })],
     friendsList : [{
         userId : mongoose.Schema.Types.ObjectId
     }],

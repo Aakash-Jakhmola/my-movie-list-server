@@ -6,7 +6,10 @@ var ValidateEmail = function(email) {
 };
 
 const userSchema = new mongoose.Schema({
-    firstname : String ,
+    firstname : {
+        type:String,
+        required: true,
+    },
     lastname : String,
     email: {
 		type: String,

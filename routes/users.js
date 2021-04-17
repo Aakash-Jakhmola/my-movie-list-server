@@ -18,7 +18,7 @@ router.post('/register', function(req, res){
             res.json(result)
         })
         .catch(err=>{
-            res.json(err)
+            res.json({error:err.message})
         })
 }) ;
 
@@ -147,8 +147,9 @@ router.post('/:userid/follow',function(req,res) {
         {$push: {following: obj}},
         {safe: true, upsert: true})
         .then(result =>{
-            res.json(result);
+            res.status(200).end();
             // update followersList of friend
+            /*TODO: Add error handling*/
             followfunc.AppendFollowersList(userId,friendId)
         })
         .catch(err=>{

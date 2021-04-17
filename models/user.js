@@ -5,8 +5,7 @@ var ValidateEmail = function(email) {
 	return re.test(email)
 };
 
-
-const userSchema = mongoose.Schema({
+const userSchema = new mongoose.Schema({
     firstname : String ,
     lastname : String,
     email: {
@@ -19,16 +18,35 @@ const userSchema = mongoose.Schema({
     	validate: [ValidateEmail, 'Please fill a valid email address'],
 		//match: [/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/, 'Please fill a valid email address']
 	},
-    moviesList : [new mongoose.Schema({
-        movieId : Number, 
+
+    movies : [new mongoose.Schema({
+        movieid : Number, 
         rating : Number,
-    },{ _id: false })],
-    friendsList : [{
-        userId : mongoose.Schema.Types.ObjectId
+    })],
+
+    followers : [{
+        userid : String,
+        _id : false 
     }],
+
+    following : [{
+        userid : String,
+        _id : false 
+    }],
+
+    posts : [{
+        postid : String,
+        _id : false
+    }],
+
+    feed : [{
+        postid : String,
+        _id : false
+    }]
+
 }) ;
 
-const User = mongoose.model('user',userSchema) ;
+const User = mongoose.model('User',userSchema) ;
 
 module.exports = {
     User : User,

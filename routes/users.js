@@ -41,7 +41,6 @@ router.get('/:userid/movielist', function(req,res){
     res.contentType('application/json')
     const userId = req.params.userid;
     const orderby = req.query.orderby || 'time' ;
-    console.log('orderby:',orderby)
 
     let movielist = [];
 
@@ -75,7 +74,12 @@ router.get('/:userid/movielist', function(req,res){
     User.findById(userId)
     .then(result =>{
 
-        result.movies.forEach(element => {
+		if(result.movies.length == 0) {
+			res.json([]) ;
+			return ;
+		}
+
+		result.movies.forEach(element => {
             postfunc.RenderMovie(element.movieid)
                 .then(movie=>{
                     movielist.push({
@@ -106,6 +110,8 @@ router.get('/:userid/movielist', function(req,res){
                     }
 
                 });
+                //console.log(movielist)
+                
         });
         
     })

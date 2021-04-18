@@ -10,7 +10,7 @@ class Movie {
         this.vote_average = movieData.vote_average
         this.adult = movieData.adult
         /*requires reconsideration*/
-        this.poster_url = "https://image.tmdb.org/t/p/w92"+movieData.poster_path
+        this.poster_url = "https://image.tmdb.org/t/p/w200"+movieData.poster_path
     }
 }
 

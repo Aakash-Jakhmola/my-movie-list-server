@@ -14,38 +14,51 @@ app.use(express.json()) ;
 app.use(express.urlencoded());
 
 mongoose.connect(process.env.DB_URI, {useNewUrlParser:true, useUnifiedTopology:true}) ;
+const con = mongoose.connection
 
-app.get('/', function(req, res){
+con.on('error', console.error.bind(console, 'connection error:'));
+con.once('open', ()=> {
+  console.log("Connected to mongodb")
+});
+
+const userRouter = require('./routes/users');
+const postRouter = require('./routes/posts');
+const movieRouter = require('./routes/movies') ;
+
+app.use('/users',userRouter);
+app.use('/posts',postRouter) ;
+app.use('/movies',movieRouter) ;
+
+//for testing ... will be removed
+app.get('/',function(req,res){
     res.render("home", {data : []}) ;
-    const user1 = User({
-        name : "aakash",
-        email : "aakash001jakhmola@gmail.com",
+});
 
-    });
-    user1.save().then(()=> {console.log('Successful');}) ;
-}) ;
-
+//for testing ... will be removed
 app.post('/', function(req, res){
     const movieName = req.body.movieName ;
     const url = 'https://api.themoviedb.org/3/search/movie?language=en-US&api_key='+apiKey+'&query=' + movieName ;
-    https.get(url, (response) => {
-        if(response.statusCode === 2000) {
-            console.log('Successfully retrieved the data');
-           
-        } else {
-            console.log("Error " + response.statusCode) ;
-        }
-        response.on('data' , (data) => {
-            console.log(JSON.parse(data));
-            const dataJson = JSON.parse(data) ;
-            res.render('home', {data : dataJson.results}) ;
-        }) ;
-    });
+    https.get(url, (resp) => {
+        let data = '';
+      
+        // A chunk of data has been received.
+        resp.on('data', (chunk) => {
+          data += chunk;
+        });
+      
+        // The whole response has been received. Print out the result.
+        resp.on('end', () => {
+          let dataJson = JSON.parse(data)
+          res.render('home', {data : dataJson.results}) ;
+          
+        });
+      
+      }).on("error", (err) => {
+        res.json(err)
+      });
     
 }) ;
 
-let port = process.env.PORT ;
-if(port == null)
-    port = 3000 ;
+let port = process.env.PORT || 3000;
 
-app.listen(3000, () => console.log('server started')) ;
+app.listen(port, () => console.log('server started')) ;

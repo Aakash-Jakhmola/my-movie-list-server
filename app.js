@@ -4,6 +4,15 @@ const express = require('express') ;
 const https = require('https') ;
 const mongoose = require('mongoose') ;
 const {User} = require('./models/user') ;
+const cors = require('cors') ;
+const session = require('express-session') ;
+const passport = require('passport') ;
+const bycrypt = require('bcryptjs') ;
+const cookieParser = require('cookie-parser') ;
+const passportLocal = require('passport-local') ;
+
+
+
 
 const app = express() ;
 
@@ -11,9 +20,26 @@ const apiKey = process.env.API_KEY ;
 
 app.set('view engine', 'ejs') ;
 app.use(express.json()) ;
-app.use(express.urlencoded());
+app.use(cors());
+app.use(session(
+  {
+    secret : "secretcode",
+    resave: false,
+    saveUninitialized: false,
+  }
+));
+app.use(cookieParser("secretcode"));
+app.use(passport.initialize());
+app.use(passport.session());
+
+passport.use(User.createStrategy()) ;
+passport.serializeUser(User.serializeUser()) ;
+passport.deserializeUser(User.deserializeUser()) ;
+
+require("./passportConfig")(passport);
 
 mongoose.connect(process.env.DB_URI, {useNewUrlParser:true, useUnifiedTopology:true}) ;
+mongoose.set('useCreateIndex',true) ;
 const con = mongoose.connection
 
 con.on('error', console.error.bind(console, 'connection error:'));
@@ -29,6 +55,8 @@ app.use('/users',userRouter);
 app.use('/posts',postRouter) ;
 app.use('/movies',movieRouter) ;
 
+
+
 //for testing ... will be removed
 app.get('/',function(req,res){
     res.render("home", {data : []}) ;
@@ -36,6 +64,7 @@ app.get('/',function(req,res){
 
 //for testing ... will be removed
 app.post('/', function(req, res){
+  console.log("at home") ;
     const movieName = req.body.movieName ;
     const url = 'https://api.themoviedb.org/3/search/movie?language=en-US&api_key='+apiKey+'&query=' + movieName ;
     https.get(url, (resp) => {
@@ -59,6 +88,6 @@ app.post('/', function(req, res){
     
 }) ;
 
-let port = process.env.PORT || 3000;
+let port = process.env.PORT || 8000;
 
 app.listen(port, () => console.log('server started')) ;

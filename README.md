@@ -7,7 +7,7 @@ This repository is backend for **My Movie Listiaa**, written in Nodejs.
 
 ## TODOS
 
-This repository is still incomplete and requires following things to be done
+This repository is still incomplete and requires following things to be done:\
 
 - User authentication.
 

@@ -23,11 +23,11 @@ function RenderMovie(movieId) {
 
         resp.on('end', () => {
           let movie = new Movie(JSON.parse(data))
-          //console.log(movie)
           resolve(movie);
         });
       
       }).on("error", (err) => {
+        //console.log("Error: " + err.message);
         reject({error:err.message})
       });
     

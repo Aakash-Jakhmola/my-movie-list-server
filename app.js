@@ -10,33 +10,16 @@ const passport = require('passport') ;
 const bycrypt = require('bcryptjs') ;
 const cookieParser = require('cookie-parser') ;
 const passportLocal = require('passport-local') ;
-
-
-
+const MongoDBStore = require("connect-mongodb-session")(session);
 
 const app = express() ;
+
 
 const apiKey = process.env.API_KEY ;
 
 app.set('view engine', 'ejs') ;
 app.use(express.json()) ;
 app.use(cors());
-app.use(session(
-  {
-    secret : "secretcode",
-    resave: false,
-    saveUninitialized: false,
-  }
-));
-app.use(cookieParser("secretcode"));
-app.use(passport.initialize());
-app.use(passport.session());
-
-passport.use(User.createStrategy()) ;
-passport.serializeUser(User.serializeUser()) ;
-passport.deserializeUser(User.deserializeUser()) ;
-
-require("./passportConfig")(passport);
 
 mongoose.connect(process.env.DB_URI, {useNewUrlParser:true, useUnifiedTopology:true}) ;
 mongoose.set('useCreateIndex',true) ;
@@ -46,6 +29,11 @@ con.on('error', console.error.bind(console, 'connection error:'));
 con.once('open', ()=> {
   console.log("Connected to mongodb")
 });
+
+
+
+
+
 
 const userRouter = require('./routes/users');
 const postRouter = require('./routes/posts');

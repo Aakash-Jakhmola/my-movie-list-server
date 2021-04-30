@@ -1,32 +1,21 @@
 const mongoose = require('mongoose') ;
-const passport = require('passport') ;
-const passportLocal = require('passport-local');
-const passportLocalMongoose = require('passport-local-mongoose') ;
-
-var ValidateEmail = function(email) {
-	var re = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
-	return re.test(email)
-};
 
 const userSchema = new mongoose.Schema({
     firstname : {
         type:String,
-       // required: true,
+        required: true,
     },
     
     lastname : String,
     username : {
 		type: String,
-		trim: true,
-		lowercase: true,
-		unique: true,
-    	required: 'Email address is required',
-		// we can use either validate or match 
-    	validate: [ValidateEmail, 'Please fill a valid email address'],
-		//match: [/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/, 'Please fill a valid email address']
+		required : true
 	},
-
     
+    password : {
+        type : String,
+        required : true
+    },
 
     movies : [new mongoose.Schema({
         movieid : Number, 
@@ -51,12 +40,14 @@ const userSchema = new mongoose.Schema({
     feed : [{
         postid : String,
         _id : false
-    }]
+    }],
+    
+    date : {
+        type : Date, 
+        defaut : Date.now
+    }
 
 }) ;
-
-userSchema.plugin(passportLocalMongoose) ; 
-
 
 const User = mongoose.model('User',userSchema) ;
 

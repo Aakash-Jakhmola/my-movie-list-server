@@ -1,90 +1,97 @@
 const express = require('express');
 const router = express.Router();
-
 const { User } = require('../models/user.js');
 const followfunc = require('../core/followfunctions');
 const postfunc = require('../core/postfunctions')
-const passport = require('passport');
+const bcrypt = require('bcryptjs')
 
 
-
-router.post("/register", function(req, res){
+router.post("/register", function (req, res) {
     res.contentType('application/json')
-    let password = req.body.password ; 
-    User.findOne({username : req.body.username}, function(err, foundUser){
-        if(err) {
-            res.send("400") ;
+    
+    User.findOne({ username: req.body.username }, function (err, foundUser) {
+        if (err) {
+            res.status(400);
         } else {
-            if(foundUser) {
-                res.send("401") ;
+            if (foundUser) {
+                res.status(401);
             } else {
-                User.register({
-                    username : req.body.username, 
-                    firstname : req.body.firstname,
-                    lastname : req.body.lastname
-                } , password, function(err,user){
-                    if(err) {
-                        console.log(err);
-                        res.send("402") ;
-                    } else {
-                        passport.authenticate("local")(req, res, function(){
-                            res.send("200") ;
-                        }) ;
-                    }
-                }) ;
-            }
-        }
-    }) 
-});
+                const newUser = new User({
+                    username: req.body.username,
+                    firstname: req.body.firstname,
+                    lastname: req.body.lastname,
+                    password : req.body.password
+                })
+                console.log(newUser)
+                bcrypt.genSalt(12, (err, salt) =>
+                    bcrypt.hash(newUser.password, salt, (err, hash) => {
+                        if (err) throw err;
 
-
-
-router.post("/login", function(req, res, next){
-
-    User.findOne({username: req.body.username}, function(err, foundUser){
-        if(err)
-            res.send(err) ;
-        else {
-            console.log(foundUser) ;
-            if(!foundUser) {
-                res.send("No user found") ;
-            } else {
-                passport.authenticate('local', (err, user, info) => {
-                    if(err) {
-                        res.send(err) ;
-                        return next(err); 
-                    } 
-                    if(!user) {
-                        return res.send({status : 400, message : "wrong password" }) ;
-                    }
-                    req.logIn(user, function(err){
-                        if(err) {
-                            res.send(err) ;
-                            return next(err);
-                        }
-                        
-                        
-                        
-                        return res.send({status : 200 , result : user}) ;
+                        newUser.password = hash;
+                        // Save user
+                        newUser
+                            .save()
+                            .then(
+                                res.json({
+                                    msg: "Successfully Registered"
+                                })
+                            )
+                            .catch((err) => res.json(400));
                     })
-                })(req,res,next) ;
+                );
             }
         }
     })
-
-    
-
 });
 
-router.get("/logout", function(req, res){
-    req.logout() ;
-    res.send("200") ;
+
+
+router.post("/login", function (req, res, next) {
+
+    User.findOne({ username: req.body.username }, function (err, foundUser) {
+        if (err)
+            res.send("NETWORK ERROR1");
+        else {
+            console.log(foundUser);
+            if (!foundUser) {
+                res.send("No user found");
+            } else {
+                bcrypt.compare(req.body.password, foundUser.password).then((isMatch) => {
+                    if (!isMatch) return res.send("Invalid Password");
+
+                    res.send({
+                        username : foundUser.username,
+                        userid : foundUser._id,
+                        movies : foundUser.movies,
+                        
+                    }); // sends userId
+                })
+            }
+        }
+    })
 });
+
+// router.get("/logout", (req, res) => {
+//     req.session.destroy((err) => {
+//         //delete session data from store, using sessionID in cookie
+//         if (err) throw err;
+//         res.clearCookie("session-id"); // clears cookie containing expired sessionID
+//         res.send("Logged out successfully");
+//     });
+// });
+
+// router.get("/authchecker", (req, res) => {
+//     const sessUser = req.session.user;
+//     if (sessUser) {
+//         return res.json({ msg: " Authenticated Successfully", sessUser });
+//     } else {
+//         return res.status(401).json({ msg: "Unauthorized" });
+//     }
+// });
 
 router.get('/:userid', async (req, res) => {
     res.contentType('application/json')
     const id = req.params.userid
-    console.log("i am here");
     User.findById(id)
         .then(result => {
             res.json(result)
@@ -95,10 +102,10 @@ router.get('/:userid', async (req, res) => {
 
 })
 
-router.get('/:userid/movielist', function (req, res) {
+router.get('/movielist', function (req, res) {
 
     res.contentType('application/json')
-    const userId = req.params.userid;
+    const userId = req.body.userid;
     const orderby = req.query.orderby || 'time';
     console.log('orderby:', orderby)
 
@@ -174,11 +181,18 @@ router.get('/:userid/movielist', function (req, res) {
 
 })
 
-router.post('/:userid/addmovie', function (req, res) {
+router.post('/addmovie', function (req, res) {
+    const sessUser = req.session.user;
+    const userID = req.body.userid
 
-    //add movie to users movieList ... after that generate a post
-    console.log("addmovie");
-    const userID = req.params.userid
+    if(sessUser) {
+        if(sessUser.id != userID)
+            return res.status(401) ;
+    } else {
+        return res.status(401) ;
+    }
+
+
     const movieID = parseInt(req.body.movieid);
     const rating = parseInt(req.body.rating);
 
@@ -196,8 +210,19 @@ router.post('/:userid/addmovie', function (req, res) {
         });
 });
 
-router.post('/:userid/follow', function (req, res) {
-    const userId = req.params.userid;
+router.post('/follow', function (req, res) {
+   
+    const userId = req.body.userid;
+
+
+    if(sessUser) {
+        if(sessUser.id != userId)
+            return res.status(401) ;
+    } else {
+        return res.status(401) ;
+    }
+   
+   
     const friendId = req.body.friendid;
 
     const obj = { userid: friendId };
@@ -217,8 +242,8 @@ router.post('/:userid/follow', function (req, res) {
 
 });
 
-router.get('/:userid/followers', (req, res) => {
-    const userId = req.params.userid;
+router.get('/followers', (req, res) => {
+    const userId = req.body.userid;
     followfunc.GetFollowersList(userId)
         .then(result => {
             res.json(result);
@@ -228,8 +253,8 @@ router.get('/:userid/followers', (req, res) => {
         })
 })
 
-router.get('/:userid/following', (req, res) => {
-    const userId = req.params.userid;
+router.get('/following', (req, res) => {
+    const userId = req.body.userid;
     followfunc.GetFollowingList(userId)
         .then(result => {
             res.json(result);

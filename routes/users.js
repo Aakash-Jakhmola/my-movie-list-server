@@ -8,43 +8,34 @@ const bcrypt = require('bcryptjs')
 
 router.post("/register", function (req, res) {
     res.contentType('application/json')
-    
-    User.findOne({ username: req.body.username }, function (err, foundUser) {
-        if (err) {
-            res.status(400);
-        } else {
-            if (foundUser) {
-                res.status(401);
-            } else {
-                const newUser = new User({
-                    username: req.body.username,
-                    firstname: req.body.firstname,
-                    lastname: req.body.lastname,
-                    password : req.body.password
-                })
-                console.log(newUser)
-                bcrypt.genSalt(12, (err, salt) =>
-                    bcrypt.hash(newUser.password, salt, (err, hash) => {
-                        if (err) throw err;
 
-                        newUser.password = hash;
-                        // Save user
-                        newUser
-                            .save()
-                            .then(
-                                res.json({
-                                    msg: "Successfully Registered"
-                                })
-                            )
-                            .catch((err) => res.json(400));
-                    })
-                );
-            }
-        }
+    const newUser = new User({
+        username: req.body.username,
+        firstname: req.body.firstname,
+        lastname: req.body.lastname,
+        password : req.body.password
     })
+
+    bcrypt.genSalt(12, (err, salt) =>{
+        if(err) {
+            res.status(500);
+            return;
+        }
+        bcrypt.hash(newUser.password, salt, (err, hash) => {
+                if (err) throw err;
+                newUser.password = hash;
+                // Save user
+                newUser.save()
+                .then((result)=>{
+                        res.json(result)
+                        console.log(result)
+                    }
+                )
+                .catch((err) => res.json({error:err.message}));
+            })
+        }  
+    );
 });
-
-
 
 router.post("/login", function (req, res, next) {
 
@@ -89,23 +80,43 @@ router.post("/login", function (req, res, next) {
 //     }
 // });
 
-router.get('/:userid', async (req, res) => {
+router.get('/:username', async (req, res) => {
     res.contentType('application/json')
-    const id = req.params.userid
-    User.findById(id)
-        .then(result => {
-            res.json(result)
-        })
-        .catch(err => {
-            res.json(err)
-        })
+    const username = req.params.username
+    // User.findOne({username:username})
+    //     .then(result => {
+    //         res.json(result)
+    //     })
+    //     .catch(err => {
+    //         res.json(err)
+    //     })
+
+    User.aggregate([
+        { $match : {username : username}},
+        {
+            $project : {
+                username:1,
+                firstname:1,
+                lastname:1,
+                movies_count : {$size : '$movies'},
+                followers_count : {$size : '$followers'},
+                following_count : {$size : '$following'},
+            }
+        }
+    ])
+    .then((result)=>{
+        res.json(result)
+    })
+    .catch((err)=>{
+        res.json({error:err.message})
+    })
 
 })
 
-router.get('/movielist', function (req, res) {
+router.get('/:username/movielist', function (req, res) {
 
     res.contentType('application/json')
-    const userId = req.body.userid;
+    const username = req.params.username;
     const orderby = req.query.orderby || 'time';
     console.log('orderby:', orderby)
 
@@ -128,7 +139,7 @@ router.get('/movielist', function (req, res) {
         movielist.sort((a, b) => {
             if (a.time > b.time) {
                 return -1;
-            } else if (a.rating < b.rating) {
+            } else if (a.time < b.time) {
                 return 1;
             }
             return 0;
@@ -138,8 +149,13 @@ router.get('/movielist', function (req, res) {
 
     /*THERE MUST BE A BETTER WAY!*/
 
-    User.findById(userId)
+    User.findOne({username:username})
         .then(result => {
+
+            if(result.movies.length == 0) {
+                res.json([]) ;
+                return ;
+            }
 
             result.movies.forEach(element => {
                 postfunc.RenderMovie(element.movieid)
@@ -148,6 +164,7 @@ router.get('/movielist', function (req, res) {
                             time: element._id.getTimestamp(),
                             movieid: element.movieid,
                             rating: element.rating,
+                            review : element.review,
                             movie: movie
                         });
 
@@ -163,6 +180,7 @@ router.get('/movielist', function (req, res) {
                             time: element._id.getTimestamp(),
                             movieid: element.movieid,
                             rating: element.rating,
+                            review : element.review,
                             error: err.error
                         })
 
@@ -181,29 +199,37 @@ router.get('/movielist', function (req, res) {
 
 })
 
-router.post('/addmovie', function (req, res) {
-    const sessUser = req.session.user;
+router.post('/addmovie', async (req, res) => {
     const userID = req.body.userid
-
-    if(sessUser) {
-        if(sessUser.id != userID)
-            return res.status(401) ;
-    } else {
-        return res.status(401) ;
-    }
-
-
     const movieID = parseInt(req.body.movieid);
     const rating = parseInt(req.body.rating);
+    const review = req.body.review;
 
-    const obj = { movieid: movieID, rating: rating }
+    const obj = { movieid: movieID, rating: rating, review : review }
+
+    let userExists = await User.countDocuments({_id:userID})
+    if(userExists == 0){
+        res.json({error:"User does not exists"})
+        return ;
+    }
+
+    // check if movie is already added 
+    // User.aggregate([
+    //     {$match : {_id : userID}},
+    //     {movies : {$in :[{movieid:movieID}]}}
+    // ])
+    // .then((result)=>{
+    //     console.log(result)
+    // })
+    // .catch((err)=>{
+    //     console.log(err)
+    // })
 
     User.findByIdAndUpdate(userID,
         { $push: { movies: obj } },
         { safe: true, upsert: true })
         .then(result => {
-            //redirect to POST /posts to create post ... after successfully creating post ... add post to followers feed
-            res.redirect(307, '/posts')
+            res.json(result)
         })
         .catch(err => {
             res.json(err);
@@ -214,17 +240,7 @@ router.post('/follow', function (req, res) {
    
     const userId = req.body.userid;
 
-
-    if(sessUser) {
-        if(sessUser.id != userId)
-            return res.status(401) ;
-    } else {
-        return res.status(401) ;
-    }
-   
-   
     const friendId = req.body.friendid;
-
     const obj = { userid: friendId };
 
     User.findByIdAndUpdate(userId,

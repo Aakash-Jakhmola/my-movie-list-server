@@ -34,7 +34,35 @@ function RenderMovie(movieId) {
   }); 
 }
 
+function RenderSearchedMovies(movieName) {
+  return new Promise((resolve,reject)=> {
+    
+    const url = 'https://api.themoviedb.org/3/search/movie?api_key='+ process.env.API_KEY +'&query=' + movieName ;
+    https.get(url, (resp) => {
+        let data = '';
+        resp.on('data', (chunk) => {
+          data += chunk;
+        });
+        resp.on('end', () => {
+          let dataJson = JSON.parse(data)
+          let list = []
+          dataJson.results.forEach(element => {
+              list.push(new Movie(element)) ;
+              //console.log(element.genre_ids)
+          });
+          //console.log(dataJson.results)
+          resolve(list)
+        });
+      
+      }).on("error", (err) => {
+        reject(err); 
+      });
+
+  });
+}
+
 //this function renders Post object which contains all details from Post models and converts to json form
+//currently not funcitonal
 async function RenderPost(postModel) {
 
     return new Promise((resolve,reject)=>{
@@ -52,6 +80,7 @@ async function RenderPost(postModel) {
     });
 }
 
+//currently not funcitonal
 function AppendPost(userId,postId) {
 
   User.findByIdAndUpdate(userId,
@@ -67,6 +96,7 @@ function AppendPost(userId,postId) {
 
 module.exports = {
     RenderMovie : RenderMovie,
+    RenderSearchedMovies : RenderSearchedMovies,
     RenderPost : RenderPost,
     AppendPost : AppendPost
 }

@@ -9,7 +9,8 @@ const userSchema = new mongoose.Schema({
     lastname : String,
     username : {
 		type: String,
-		required : true
+		required : true,
+        unique:true
 	},
     
     password : {
@@ -20,6 +21,7 @@ const userSchema = new mongoose.Schema({
     movies : [new mongoose.Schema({
         movieid : Number, 
         rating : Number,
+        review : String
     })],
 
     followers : [{
@@ -30,23 +32,7 @@ const userSchema = new mongoose.Schema({
     following : [{
         userid : String,
         _id : false 
-    }],
-
-    posts : [{
-        postid : String,
-        _id : false
-    }],
-
-    feed : [{
-        postid : String,
-        _id : false
-    }],
-    
-    date : {
-        type : Date, 
-        defaut : Date.now
-    }
-
+    }]
 }) ;
 
 const User = mongoose.model('User',userSchema) ;

@@ -41,19 +41,22 @@ router.post("/login", function (req, res, next) {
 
     User.findOne({ username: req.body.username }, function (err, foundUser) {
         if (err)
-            res.send("NETWORK ERROR1");
+            return res.status(401);
         else {
             console.log(foundUser);
             if (!foundUser) {
-                res.send("No user found");
+                return res.status(401);
             } else {
                 bcrypt.compare(req.body.password, foundUser.password).then((isMatch) => {
-                    if (!isMatch) return res.send("Invalid Password");
-
+                    if (!isMatch) return res.status(401);
                     res.send({
                         username : foundUser.username,
                         userid : foundUser._id,
-                        movies : foundUser.movies,
+                        following_count : foundUser.following.length,
+                        followers_count : foundUser.followers.length,
+                        movies_count:foundUser.movies.length,
+                        firstname : foundUser.firstname,
+                        lastname : foundUser.lastname
                         
                     }); // sends userId
                 })
@@ -239,9 +242,16 @@ router.post('/addmovie', async (req, res) => {
 router.post('/follow', function (req, res) {
    
     const userId = req.body.userid;
-
     const friendId = req.body.friendid;
-    const obj = { userid: friendId };
+    const friendFirstName = req.body.firstname;
+    const friendLastName = req.body.lastname ;
+    const friendUsername = req.body.username ;
+    const obj = { 
+        userid: friendId,
+        username : friendUsername,
+        firstname : friendFirstName,
+        lastname : friendLastName
+     };
 
     User.findByIdAndUpdate(userId,
         { $push: { following: obj } },
@@ -278,6 +288,28 @@ router.get('/following', (req, res) => {
         .catch(err => {
             res.json(err);
         })
+})
+
+router.get('/:username/followers', (req,res)=>{
+    const username = req.params.username ;
+    User.findOne({username : username}, (err, foundUser)=>{
+        if(err) 
+            return res.status(400);
+        else {
+            res.send(foundUser.followers) ;
+        }
+    })
+})
+
+router.get('/:username/following', (req,res)=>{
+    const username = req.params.username ;
+    User.findOne({username : username}, (err, foundUser)=>{
+        if(err) 
+            return res.status(400);
+        else {
+            res.send(foundUser.following) ;
+        }
+    })
 })
 
 module.exports = router

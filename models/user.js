@@ -26,11 +26,17 @@ const userSchema = new mongoose.Schema({
 
     followers : [{
         userid : String,
+        username : String, 
+        firstname : String, 
+        lastname : String,
         _id : false 
     }],
 
     following : [{
         userid : String,
+        username : String, 
+        firstname : String, 
+        lastname : String,
         _id : false 
     }]
 }) ;

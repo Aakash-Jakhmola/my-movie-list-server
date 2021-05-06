@@ -3,7 +3,8 @@ const router = express.Router();
 const { User } = require('../models/user.js');
 const followfunc = require('../core/followfunctions');
 const postfunc = require('../core/postfunctions')
-const bcrypt = require('bcryptjs')
+const bcrypt = require('bcryptjs');
+const mongoose= require('mongoose');
 
 
 router.post("/register", function (req, res) {
@@ -16,6 +17,11 @@ router.post("/register", function (req, res) {
         password : req.body.password
     })
 
+    if(newUser.password == null || newUser.password == undefined || newUser.password=="") {
+        res.json({error: "password must not be blank"})
+        return ;
+    }
+
     bcrypt.genSalt(12, (err, salt) =>{
         if(err) {
             res.status(500);
@@ -27,6 +33,7 @@ router.post("/register", function (req, res) {
                 // Save user
                 newUser.save()
                 .then((result)=>{
+                        res.status(201)
                         res.json(result)
                         console.log(result)
                     }
@@ -65,34 +72,10 @@ router.post("/login", function (req, res, next) {
     })
 });
 
-// router.get("/logout", (req, res) => {
-//     req.session.destroy((err) => {
-//         //delete session data from store, using sessionID in cookie
-//         if (err) throw err;
-//         res.clearCookie("session-id"); // clears cookie containing expired sessionID
-//         res.send("Logged out successfully");
-//     });
-// });
-
-// router.get("/authchecker", (req, res) => {
-//     const sessUser = req.session.user;
-//     if (sessUser) {
-//         return res.json({ msg: " Authenticated Successfully", sessUser });
-//     } else {
-//         return res.status(401).json({ msg: "Unauthorized" });
-//     }
-// });
 
 router.get('/:username', async (req, res) => {
     res.contentType('application/json')
     const username = req.params.username
-    // User.findOne({username:username})
-    //     .then(result => {
-    //         res.json(result)
-    //     })
-    //     .catch(err => {
-    //         res.json(err)
-    //     })
 
     User.aggregate([
         { $match : {username : username}},
@@ -197,7 +180,7 @@ router.get('/:username/movielist', function (req, res) {
 
         })
         .catch(err => {
-            res.json(err);
+            res.json({error: err.message})
         });
 
 })
@@ -210,91 +193,90 @@ router.post('/addmovie', async (req, res) => {
 
     const obj = { movieid: movieID, rating: rating, review : review }
 
-    let userExists = await User.countDocuments({_id:userID})
-    if(userExists == 0){
-        res.json({error:"User does not exists"})
-        return ;
+    try {
+        
+        let userExists = await User.countDocuments({_id:userID})
+        if(userExists == 0){
+            throw new Error("User does not exists")
+        }
+
+        //check if movie is already added 
+        let currentMovieList = await User.aggregate([
+                            { $match : {_id : mongoose.Types.ObjectId(userID)}},
+                            { $project : { movies:1}}
+                            ])
+        
+        for(let i=0;i<currentMovieList[0].movies.length;i++) {
+            if(currentMovieList[0].movies[i].movieid == movieID) {
+                throw new Error("Movie already watched")
+            }
+        } 
+
+        await  User.findByIdAndUpdate(userID,
+                { $push: { movies: obj } },
+                { safe: true, upsert: true })
+
+        res.status(201).end()
+
+    }catch(err) {
+        res.json({error:err.message})
+        return;
     }
 
-    // check if movie is already added 
-    // User.aggregate([
-    //     {$match : {_id : userID}},
-    //     {movies : {$in :[{movieid:movieID}]}}
-    // ])
-    // .then((result)=>{
-    //     console.log(result)
-    // })
-    // .catch((err)=>{
-    //     console.log(err)
-    // })
-
-    User.findByIdAndUpdate(userID,
-        { $push: { movies: obj } },
-        { safe: true, upsert: true })
-        .then(result => {
-            res.json(result)
-        })
-        .catch(err => {
-            res.json(err);
-        });
 });
 
-router.post('/follow', function (req, res) {
+router.post('/follow', async(req, res)=> {
    
     const userId = req.body.userid;
-    const friendId = req.body.friendid;
-    const friendFirstName = req.body.firstname;
-    const friendLastName = req.body.lastname ;
     const friendUsername = req.body.username ;
-    const obj = { 
-        userid: friendId,
-        username : friendUsername,
-        firstname : friendFirstName,
-        lastname : friendLastName
-     };
 
-    User.findByIdAndUpdate(userId,
-        { $push: { following: obj } },
-        { safe: true, upsert: true })
-        .then(result => {
-            res.status(200).end();
-            // update followersList of friend
-            /*TODO: Add error handling*/
-            followfunc.AppendFollowersList(userId, friendId)
-        })
-        .catch(err => {
-            res.json(err);
-        });
+    try {
+        const friend = await User.findOne({username:friendUsername})
+        if (friend == null || friend == undefined) {
+            res.json({error: "User does not exists"})
+            return ;
+        }
+        //check if user is trying to follow itself
+        if(friend._id == userId) {
+            throw new Error("You cannot follow yourself")
+        }
+
+        //check if user is already following this friend
+        const currUser = await User.findById(userId);
+        for(let i=0;i<currUser.following.length;i++) {
+            if(currUser.following[i].username == friendUsername) {
+                throw new Error("Already following this person")
+            }
+        }
+
+        const obj = { 
+            userid: friend._id,
+            username : friendUsername,
+            firstname : friend.firstname,
+            lastname : friend.lastname
+         };
+
+
+        await User.findByIdAndUpdate(userId,
+                { $push: { following: obj } },
+                { safe: true, upsert: true })
+
+        res.status(200).end();
+        followfunc.AppendFollowersList(userId, friend.id)
+
+    }catch(err) {
+        res.json({error:err.message})
+        return
+    }
 
 });
 
-router.get('/followers', (req, res) => {
-    const userId = req.body.userid;
-    followfunc.GetFollowersList(userId)
-        .then(result => {
-            res.json(result);
-        })
-        .catch(err => {
-            res.json(err);
-        })
-})
-
-router.get('/following', (req, res) => {
-    const userId = req.body.userid;
-    followfunc.GetFollowingList(userId)
-        .then(result => {
-            res.json(result);
-        })
-        .catch(err => {
-            res.json(err);
-        })
-})
 
 router.get('/:username/followers', (req,res)=>{
     const username = req.params.username ;
     User.findOne({username : username}, (err, foundUser)=>{
         if(err) 
-            return res.status(400);
+           res.json({error: err.message})
         else {
             res.send(foundUser.followers) ;
         }
@@ -305,7 +287,7 @@ router.get('/:username/following', (req,res)=>{
     const username = req.params.username ;
     User.findOne({username : username}, (err, foundUser)=>{
         if(err) 
-            return res.status(400);
+            res.json({error: err.message})
         else {
             res.send(foundUser.following) ;
         }

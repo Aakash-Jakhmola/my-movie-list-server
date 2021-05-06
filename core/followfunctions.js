@@ -1,10 +1,18 @@
 const mongoose = require('mongoose')
 const { User } = require('../models/user')
 
-async function AppendFollowersList(userId,followedId) {
+async function AppendFollowersList(userId,friendId) {
 
-    User.findByIdAndUpdate(followedId,
-        {$push: {followers: {userid: userId}}},
+    const user = await User.findById(userId)
+    const obj = { 
+        userid: user._id,
+        username : user.username,
+        firstname : user.firstname,
+        lastname : user.lastname
+     };
+
+    User.findByIdAndUpdate(friendId,
+        {$push: {followers: obj}},
         {safe: true, upsert: true})
         .then(result =>{
             //console.log(result)

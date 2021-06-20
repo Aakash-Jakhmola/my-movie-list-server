@@ -1,23 +1,9 @@
 require('dotenv').config() ;
-
 const express = require('express') ;
-const https = require('https') ;
-
 const mongoose = require('mongoose') ;
 const cors = require('cors') ;
-const session = require('express-session') ;
-
-const passport = require('passport') ;
-const bycrypt = require('bcryptjs') ;
-const cookieParser = require('cookie-parser') ;
-const passportLocal = require('passport-local') ;
-const MongoDBStore = require("connect-mongodb-session")(session);
-
 const app = express() ;
 
-const apiKey = process.env.API_KEY ;
-
-app.set('view engine', 'ejs') ;
 app.use(express.json()) ;
 app.use(cors());
 
@@ -39,11 +25,5 @@ app.use('/posts',postRouter) ;
 app.use('/movies',movieRouter) ;
 
 
-//for testing ... will be removed
-app.get('/',function(req,res){
-    res.render("home", {data : []}) ;
-});
-
 let port = process.env.PORT || 8000;
-
 app.listen(port, () => console.log('server started')) ;

@@ -115,7 +115,7 @@ router.get('/:username/movielist', async (req, res) => {
     if (orderby == 'rating') {
         User.findOne({ username: username }, {
             "id": 1,
-            "movies_by_rating": { $slice: [offset, offset + 1] }
+            "movies_by_rating": { $slice: [offset, offset + 10] }
         }, async(err, doc) => {
             let result = await getMovieList(err, doc, orderby)
             res.send(result)
@@ -123,7 +123,7 @@ router.get('/:username/movielist', async (req, res) => {
     } else {
         User.findOne({ username: username }, {
             "id": 1,
-            "movies": { $slice: [offset, offset + 1] }
+            "movies": { $slice: [offset, offset + 10] }
         }, async(err, doc) => {
             let result = await getMovieList(err, doc, orderby)
             res.send(result)

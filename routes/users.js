@@ -3,7 +3,7 @@ const router = express.Router();
 const { User } = require('../models/user.js');
 const followfunc = require('../core/followfunctions');
 const bcrypt = require('bcryptjs');
-const postfunc = require('../core/postfunctions')
+const getMovieList = require('../core/getMovieList')
 const mongoose = require('mongoose');
 
 
@@ -101,85 +101,35 @@ router.get('/:username', async (req, res) => {
 
 })
 
-router.get('/:username/movielist', function (req, res) {
+
+
+
+router.get('/:username/movielist', async (req, res) => {
     console.time('task1')
     res.contentType('application/json')
 
     const username = req.params.username;
     const orderby = req.query.orderby || 'time';
     const offset = parseInt(req.query.offset) || 0;
-    let movielist = [] ;
-    var sortMovies = function () {
 
-        if (orderby == 'rating') {
-            movielist.sort((a, b) => {
-                if (a.rating > b.rating) {
-                    return -1;
-                } else if (a.rating < b.rating) {
-                    return 1;
-                }
-                return 0;
-            })
-            return;
-        }
-
-        movielist.sort((a, b) => {
-            if (a.time > b.time) {
-                return -1;
-            } else if (a.time < b.time) {
-                return 1;
-            }
-            return 0;
+    if (orderby == 'rating') {
+        User.findOne({ username: username }, {
+            "id": 1,
+            "movies_by_rating": { $slice: [offset, offset + 1] }
+        }, async(err, doc) => {
+            let result = await getMovieList(err, doc, orderby)
+            res.send(result)
         })
-
+    } else {
+        User.findOne({ username: username }, {
+            "id": 1,
+            "movies": { $slice: [offset, offset + 1] }
+        }, async(err, doc) => {
+            let result = await getMovieList(err, doc, orderby)
+            res.send(result)
+        })
     }
 
-    User.findOne({ username: username }, {
-        "id": 1,
-        "movies": { $slice: [offset, offset + 9] }
-    }, (err, doc) => {
-        console.timeEnd('task1')
-        if (err)
-            res.send({ error: err })
-        else {
-            
-            doc.movies.forEach(element => {
-                postfunc.RenderMovie(element.movieid)
-                    .then(movie => {
-                        movielist.push({
-                            time: element._id.getTimestamp(),
-                            movieid: element.movieid,
-                            rating: element.rating,
-                            review : element.review,
-                            movie: movie
-                        });
-
-                        if (movielist.length == doc.movies.length) { 
-                            sortMovies();                           
-                            res.json(movielist);
-                        }
-
-                    })
-                    .catch(err => {
-
-                        movielist.push({
-                            time: element._id.getTimestamp(),
-                            movieid: element.movieid,
-                            rating: element.rating,
-                            review : element.review,
-                            error: err.error
-                        })
-
-                        if (movielist.length == doc.movies.length) {
-                            sortMovies();   
-                            res.json(movielist);
-                        }
-
-                    });
-            });
-
-        }
-    })
     // orderby time remaining
 
 })
@@ -216,6 +166,16 @@ router.post('/addmovie', async (req, res) => {
         await User.findByIdAndUpdate(userID,
             { $push: { movies: obj } },
             { safe: true, upsert: true })
+
+        await User.findByIdAndUpdate(userID, {
+            $push: {
+                movies_by_rating: {
+                    $each: [obj],
+                    $sort: { rating: -1 }
+                }
+            }
+        }
+        )
 
         res.status(201).end()
 

@@ -1,5 +1,11 @@
 const mongoose = require('mongoose') ;
 
+const movieSchema = new mongoose.Schema({
+    movieid : Number, 
+    rating : Number,
+    review : String
+})
+
 const userSchema = new mongoose.Schema({
     firstname : {
         type:String,
@@ -18,11 +24,9 @@ const userSchema = new mongoose.Schema({
         required : true
     },
 
-    movies : [new mongoose.Schema({
-        movieid : Number, 
-        rating : Number,
-        review : String
-    })],
+    movies : [movieSchema],
+
+    movies_by_rating : [movieSchema],
 
     followers : [{
         userid : String,

@@ -107,7 +107,32 @@ router.get('/:username/movielist', function (req, res) {
 
     const username = req.params.username;
     const orderby = req.query.orderby || 'time';
-    const offset = req.query.offset || 0;
+    const offset = parseInt(req.query.offset) || 0;
+    let movielist = [] ;
+    var sortMovies = function () {
+
+        if (orderby == 'rating') {
+            movielist.sort((a, b) => {
+                if (a.rating > b.rating) {
+                    return -1;
+                } else if (a.rating < b.rating) {
+                    return 1;
+                }
+                return 0;
+            })
+            return;
+        }
+
+        movielist.sort((a, b) => {
+            if (a.time > b.time) {
+                return -1;
+            } else if (a.time < b.time) {
+                return 1;
+            }
+            return 0;
+        })
+
+    }
 
     User.findOne({ username: username }, {
         "id": 1,
@@ -117,7 +142,7 @@ router.get('/:username/movielist', function (req, res) {
         if (err)
             res.send({ error: err })
         else {
-            let movielist = [] ;
+            
             doc.movies.forEach(element => {
                 postfunc.RenderMovie(element.movieid)
                     .then(movie => {
@@ -129,7 +154,8 @@ router.get('/:username/movielist', function (req, res) {
                             movie: movie
                         });
 
-                        if (movielist.length == doc.movies.length) {                            
+                        if (movielist.length == doc.movies.length) { 
+                            sortMovies();                           
                             res.json(movielist);
                         }
 
@@ -145,6 +171,7 @@ router.get('/:username/movielist', function (req, res) {
                         })
 
                         if (movielist.length == doc.movies.length) {
+                            sortMovies();   
                             res.json(movielist);
                         }
 

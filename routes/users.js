@@ -117,16 +117,24 @@ router.get('/:username/movielist', async (req, res) => {
             "id": 1,
             "movies_by_rating": { $slice: [offset, offset + 10] }
         }, async(err, doc) => {
-            let result = await getMovieList(err, doc, orderby)
-            res.send(result)
+            if(doc) {
+                let result = await getMovieList(err, doc, orderby)
+                res.send(result)
+            } else {
+                res.send([])
+            }
         })
     } else {
         User.findOne({ username: username }, {
             "id": 1,
             "movies": { $slice: [offset, offset + 10] }
         }, async(err, doc) => {
-            let result = await getMovieList(err, doc, orderby)
-            res.send(result)
+            if(doc) {
+                let result = await getMovieList(err, doc, orderby)
+                res.send(result)
+            } else {
+                res.send([])
+            }
         })
     }
 
@@ -164,7 +172,7 @@ router.post('/addmovie', async (req, res) => {
         }
 
         await User.findByIdAndUpdate(userID,
-            { $push: { movies: obj } },
+            { $push: { movies: { $each : [obj] , $position : 0 } } },
             { safe: true, upsert: true })
 
         await User.findByIdAndUpdate(userID, {

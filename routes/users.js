@@ -116,10 +116,14 @@ router.get('/:username/movielist', async (req, res) => {
         User.findOne({ username: username }, {
             "id": 1,
             "movies_by_rating": { $slice: [offset, offset + 10] }
-        }, async(err, doc) => {
-            if(doc) {
-                let result = await getMovieList(err, doc, orderby)
-                res.send(result)
+        }, async (err, doc) => {
+            if (doc) {
+                try {
+                    let result = await getMovieList(err, doc, orderby)
+                    res.send(result)
+                } catch (err) {
+                    res.send(err)
+                }
             } else {
                 res.send([])
             }
@@ -128,10 +132,14 @@ router.get('/:username/movielist', async (req, res) => {
         User.findOne({ username: username }, {
             "id": 1,
             "movies": { $slice: [offset, offset + 10] }
-        }, async(err, doc) => {
-            if(doc) {
-                let result = await getMovieList(err, doc, orderby)
-                res.send(result)
+        }, async (err, doc) => {
+            if (doc) {
+                try {
+                    let result = await getMovieList(err, doc, orderby)
+                    res.send(result)
+                } catch (err) {
+                    res.send(err)
+                }
             } else {
                 res.send([])
             }
@@ -172,21 +180,19 @@ router.post('/addmovie', async (req, res) => {
         }
 
         await User.findByIdAndUpdate(userID,
-            { $push: { movies: { $each : [obj] , $position : 0 } } },
+            {
+                $push: {
+                    movies: {
+                        $each: [obj], $position: 0, movies_by_rating: {
+                            $each: [obj],
+                            $sort: { rating: -1 }
+                        }
+                    }
+                }
+            },
             { safe: true, upsert: true })
 
-        await User.findByIdAndUpdate(userID, {
-            $push: {
-                movies_by_rating: {
-                    $each: [obj],
-                    $sort: { rating: -1 }
-                }
-            }
-        }
-        )
-
         res.status(201).end()
-
     } catch (err) {
         res.json({ error: err.message })
         return;
@@ -264,11 +270,44 @@ router.get('/:username/following', (req, res) => {
     })
 })
 
-router.delete('/:username/movielist', (req, res) => {
+router.delete('/:username/movielist', async (req, res) => {
     const username = req.params.username
-    User.findOneAndUpdate({ username: username }, { movies: 1 }, () => {
+    const movieid = req.query.movieid
+    try {
+        await User.findOneAndUpdate({ username: username }, {
+                $pull: { movies: { movieid: { $eq: movieid } }, movies_by_rating: { movieid: { $eq: movieid } } }
+        },
+            { safe: true, upsert: true }
+        )
 
-    })
+        res.send({ msg: "ok" })
+    } catch (err) {
+        res.send({ error: err })
+    }
+
+})
+
+router.patch('/:username/movielist', async (req, res) => {
+    const username = req.params.username
+    const movieid = parseInt(req.query.movieid)
+    const obj = req.body.newMovieDetails
+    const rating = parseInt(obj.rating)
+    const review = obj.review
+
+
+    console.log(obj)
+    try {
+        await User.updateOne(
+            { "username": username, "movies.movieid": movieid, "movies_by_rating.movieid": movieid },
+            { $set: { "movies.$.rating": rating, "movies.$.review": review, "movies_by_rating.$.rating": rating, "movies_by_rating.$.review": review } },
+            { upsert: true }
+        )
+        res.send("ok")
+    } catch (err) {
+        console.log(err)
+        res.send({ error: err })
+    }
+
 })
 
 module.exports = router

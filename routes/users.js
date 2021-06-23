@@ -5,6 +5,7 @@ const followfunc = require('../core/followfunctions');
 const bcrypt = require('bcryptjs');
 const getMovieList = require('../core/getMovieList')
 const mongoose = require('mongoose');
+const { response } = require('express');
 
 
 router.post("/register", function (req, res) {
@@ -273,6 +274,13 @@ router.get('/:username/following', (req, res) => {
 router.delete('/:username/movielist', async (req, res) => {
     const username = req.params.username
     const movieid = req.query.movieid
+
+    if(!movieid) {
+        res.json({error : "movieid is required"})
+        res.status(401)
+        res.end()
+    }
+
     try {
         await User.findOneAndUpdate({ username: username }, {
                 $pull: { movies: { movieid: { $eq: movieid } }, movies_by_rating: { movieid: { $eq: movieid } } }
@@ -290,9 +298,23 @@ router.delete('/:username/movielist', async (req, res) => {
 router.patch('/:username/movielist', async (req, res) => {
     const username = req.params.username
     const movieid = parseInt(req.query.movieid)
-    const obj = req.body.newMovieDetails
-    const rating = parseInt(obj.rating)
-    const review = obj.review
+    const rating = parseInt(req.body.newrating)
+    const review = req.body.newreview
+
+    if(!movieid) {
+        res.json({error : "movieid is required"})
+        res.status(401)
+        res.end()
+    }
+
+    if(!review || !rating) {
+        if(!review)
+            res.json({error : "review cannot be empty"})
+        else 
+            res.json({error : "rating cannot be empty"})
+        res.status(401)
+        res.end()
+    } 
 
 
     console.log(obj)

@@ -2,204 +2,89 @@ const express = require('express');
 const router = express.Router();
 const { User } = require('../models/user.js');
 const followfunc = require('../core/followfunctions');
-const bcrypt = require('bcryptjs');
-const getMovieList = require('../core/getMovieList')
-const mongoose = require('mongoose');
-const { response } = require('express');
+const MovieUtils = require('../core/userMovieListUtils/index')
+const UserUtils = require('../core/userUtils.js/index')
 
-
-router.post("/register", function (req, res) {
-    res.contentType('application/json')
-
-    const newUser = new User({
-        username: req.body.username,
-        firstname: req.body.firstname,
-        lastname: req.body.lastname,
-        password: req.body.password
-    })
-
-    if (newUser.password == null || newUser.password == undefined || newUser.password == "") {
-        res.json({ error: "password must not be blank" })
-        return;
+router.post("/register", async (req, res) => {
+    try{
+        let result = await UserUtils.SaveUser(req.body.username,req.body.password,req.body.firstname, req.body.lastname) 
+        if(result.error)
+            res.status(401)
+        res.send(result)
+    } catch(err) {
+        res.send({error : err})
     }
-
-    bcrypt.genSalt(12, (err, salt) => {
-        if (err) {
-            res.status(500);
-            return;
-        }
-        bcrypt.hash(newUser.password, salt, (err, hash) => {
-            if (err) throw err;
-            newUser.password = hash;
-            // Save user
-            newUser.save()
-                .then((result) => {
-                    res.status(201)
-                    res.json(result)
-                    console.log(result)
-                }
-                )
-                .catch((err) => res.json({ error: err.message }));
-        })
-    }
-    );
 });
 
-router.post("/login", function (req, res) {
-
-    User.findOne({ username: req.body.username }, function (err, foundUser) {
-        if (err)
-            res.send({ error: err });
-        else {
-            if (!foundUser) {
-                res.send({ error: "Invalid Username" });
-            } else {
-                bcrypt.compare(req.body.password, foundUser.password).then((isMatch) => {
-                    if (!isMatch) {
-                        res.send({ error: "Wrong password !" });
-                    } else {
-                        res.send({
-                            username: foundUser.username,
-                            userid: foundUser._id,
-                            following_count: foundUser.following.length,
-                            followers_count: foundUser.followers.length,
-                            movies_count: foundUser.movies.length,
-                            firstname: foundUser.firstname,
-                            lastname: foundUser.lastname
-
-                        });
-                    } // sends userId
-                })
-            }
+router.post("/login", async (req, res) => {
+    try {
+        let result = await UserUtils.CheckCredentialsAndGetUser(req.body.username, req.body.password)
+        if(result.error) {
+            res.status(401).send(res.error) 
+            return ;
         }
-    })
+        res.send(result.result)
+    } catch(err) {
+        res.send({error : err})
+    }
 });
-
 
 router.get('/:username', async (req, res) => {
-    res.contentType('application/json')
-    const username = req.params.username
-
-    User.aggregate([
-        { $match: { username: username } },
-        {
-            $project: {
-                username: 1,
-                firstname: 1,
-                lastname: 1,
-                movies_count: { $size: '$movies' },
-                followers_count: { $size: '$followers' },
-                following_count: { $size: '$following' },
-            }
+    try {
+        let result = await UserUtils.getUserDetailsFromDb(req.params.username) 
+        if(result.error){
+            res.status(401).send(result.error)
+            return;
         }
-    ])
-        .then((result) => {
-            res.json(result)
-        })
-        .catch((err) => {
-            res.json({ error: err.message })
-        })
-
+        res.send(result.result)
+    } catch(err) {
+        res.send({error : err})
+    }
 })
 
-
-
-
 router.get('/:username/movielist', async (req, res) => {
-    console.time('task1')
-    res.contentType('application/json')
-
-    const username = req.params.username;
     const orderby = req.query.orderby || 'time';
     const offset = parseInt(req.query.offset) || 0;
-
-    if (orderby == 'rating') {
-        User.findOne({ username: username }, {
-            "id": 1,
-            "movies_by_rating": { $slice: [offset, offset + 10] }
-        }, async (err, doc) => {
-            if (doc) {
-                try {
-                    let result = await getMovieList(err, doc, orderby)
-                    res.send(result)
-                } catch (err) {
-                    res.send(err)
-                }
-            } else {
-                res.send([])
-            }
-        })
-    } else {
-        User.findOne({ username: username }, {
-            "id": 1,
-            "movies": { $slice: [offset, offset + 10] }
-        }, async (err, doc) => {
-            if (doc) {
-                try {
-                    let result = await getMovieList(err, doc, orderby)
-                    res.send(result)
-                } catch (err) {
-                    res.send(err)
-                }
-            } else {
-                res.send([])
-            }
-        })
+    try {
+        let result = await MovieUtils.getMovieList(req.params.username, orderby,offset)
+        if(result.error)
+            res.status(401).send(result.error)
+        else 
+            res.send(result.result)    
+    } catch(err) {
+        res.send(err)
     }
-
-    // orderby time remaining
-
 })
 
 router.post('/addmovie', async (req, res) => {
-    const userID = req.body.userid
-    const movieID = parseInt(req.body.movieid);
-    const rating = parseInt(req.body.rating);
-    const review = req.body.review;
-
-    console.log(userID)
-
-    const obj = { movieid: movieID, rating: rating, review: review }
-
-    try {
-
-        let userExists = await User.countDocuments({ _id: userID })
-        if (userExists == 0) {
-            throw new Error("User does not exists")
-        }
-
-        //check if movie is already added 
-        let currentMovieList = await User.aggregate([
-            { $match: { _id: mongoose.Types.ObjectId(userID) } },
-            { $project: { movies: 1 } }
-        ])
-
-        for (let i = 0; i < currentMovieList[0].movies.length; i++) {
-            if (currentMovieList[0].movies[i].movieid == movieID) {
-                throw new Error("Movie already watched")
-            }
-        }
-
-        await User.findByIdAndUpdate(userID,
-            {
-                $push: {
-                    movies: {
-                        $each: [obj], $position: 0, movies_by_rating: {
-                            $each: [obj],
-                            $sort: { rating: -1 }
-                        }
-                    }
-                }
-            },
-            { safe: true, upsert: true })
-
-        res.status(201).end()
-    } catch (err) {
-        res.json({ error: err.message })
-        return;
-    }
+    
+    let result = await MovieUtils.addMovieToList(req.body.userid,req.body.movieid,req.body.rating,req.body.review) 
+    if(result.error)
+        res.status(401)
+    res.send(result)
 
 });
+
+router.delete('/:username/movielist', async (req, res) => {
+    
+    let result = await MovieUtils.deleteMovieFromList(req.params.username, req.query.movieid)
+    if(result.err)
+        res.status(401)
+    res.send(result)
+})
+
+router.patch('/:username/movielist', async (req, res) => {
+    const username = req.params.username
+    const movieid = parseInt(req.query.movieid)
+    const rating = parseInt(req.body.newrating)
+    const review = req.body.newreview
+
+    let result = await MovieUtils.updateMovieInList(username, movieid, rating, review) 
+    if(result.error)
+        res.status(401)
+    res.send(result)
+
+})
 
 router.post('/follow', async (req, res) => {
 
@@ -252,7 +137,7 @@ router.get('/:username/followers', (req, res) => {
     const username = req.params.username;
     User.findOne({ username: username }, { _id: 0, followers: 1 }, (err, foundUser) => {
         if (err)
-            res.json({ error: err.message })
+            res.json({ error: err.message }).status(401)
         else {
             res.send(foundUser.followers);
         }
@@ -262,74 +147,12 @@ router.get('/:username/followers', (req, res) => {
 router.get('/:username/following', (req, res) => {
     const username = req.params.username;
     User.findOne({ username: username }, { _id: 0, following: 1 }, (err, foundUser) => {
-        console.log(foundUser)
         if (err)
-            res.json({ error: err.message })
+            res.json({ error: err.message }).status(401).end()
         else {
             res.send(foundUser.following);
         }
     })
-})
-
-router.delete('/:username/movielist', async (req, res) => {
-    const username = req.params.username
-    const movieid = req.query.movieid
-
-    if(!movieid) {
-        res.json({error : "movieid is required"})
-        res.status(401)
-        res.end()
-    }
-
-    try {
-        await User.findOneAndUpdate({ username: username }, {
-                $pull: { movies: { movieid: { $eq: movieid } }, movies_by_rating: { movieid: { $eq: movieid } } }
-        },
-            { safe: true, upsert: true }
-        )
-
-        res.send({ msg: "ok" })
-    } catch (err) {
-        res.send({ error: err })
-    }
-
-})
-
-router.patch('/:username/movielist', async (req, res) => {
-    const username = req.params.username
-    const movieid = parseInt(req.query.movieid)
-    const rating = parseInt(req.body.newrating)
-    const review = req.body.newreview
-
-    if(!movieid) {
-        res.json({error : "movieid is required"})
-        res.status(401)
-        res.end()
-    }
-
-    if(!review || !rating) {
-        if(!review)
-            res.json({error : "review cannot be empty"})
-        else 
-            res.json({error : "rating cannot be empty"})
-        res.status(401)
-        res.end()
-    } 
-
-
-    console.log(obj)
-    try {
-        await User.updateOne(
-            { "username": username, "movies.movieid": movieid, "movies_by_rating.movieid": movieid },
-            { $set: { "movies.$.rating": rating, "movies.$.review": review, "movies_by_rating.$.rating": rating, "movies_by_rating.$.review": review } },
-            { upsert: true }
-        )
-        res.send("ok")
-    } catch (err) {
-        console.log(err)
-        res.send({ error: err })
-    }
-
 })
 
 module.exports = router

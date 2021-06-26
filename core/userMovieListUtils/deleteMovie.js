@@ -1,6 +1,6 @@
 const { User } = require('../../models/user')
 
-const deleteMovieFromMovieList = async(username, movieid) => {
+const deleteMovieFromMovieList = async (username, movieid) => {
 
   if(!username) {
     return {error : "username missing"}

@@ -73,6 +73,7 @@ router.delete('/:username/movielist', async (req, res) => {
     res.send(result)
 })
 
+			
 router.patch('/:username/movielist', async (req, res) => {
     const username = req.params.username
     const movieid = parseInt(req.query.movieid)

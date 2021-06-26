@@ -6,22 +6,31 @@ const mongoose = require('mongoose')
 
 const addMovieToMovieList = async (userid, movieid, rating, review) => {
 
-  if(!userid) {
-    return {error : "Userid missing"}
+  if (username === undefined) {
+    return { error: "username missing" }
   }
-  if(!movieid) {
-    return {error : "movieid missing"}
+
+  if (movieid === undefined) {
+    return { error: "movieid missing" }
   }
-  if(!rating) {
-    return {error : "rating missing"}
-  }
-  if(!review) {
-    return {error : "review missing"}
+
+ 
+
+  if (review === undefined || review === null) {
+    return { error: "review missing" }
   }
 
   movieid = parseInt(movieid)
   rating = parseInt(rating)
 
+  if (rating === undefined) {
+    return { error: "rating missing" }
+  }
+
+  if(rating < 1 || rating > 10) {
+    return {error : "rating should be in range 1 to 10."}
+  }
+  
   const movieDetails = { movieid: movieid, rating: rating, review: review }
 
   try {

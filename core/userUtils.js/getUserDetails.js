@@ -4,6 +4,7 @@ const getUserDetailsFromDb = async (username) => {
   try {
     let foundUser = await User.findOne({ username: username },
       {
+        _id:1,
         username: 1,
         firstname: 1,
         lastname: 1,

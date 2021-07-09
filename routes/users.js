@@ -20,10 +20,12 @@ router.post("/login", async (req, res) => {
     try {
         let result = await UserUtils.CheckCredentialsAndGetUser(req.body.username, req.body.password)
         if(result.error) {
-            res.status(401).send(res.error) 
-            return ;
+            res.status(401).send(result.error) 
+        } else {
+
+            res.setHeader('Set-Cookie',[`username=${result.result.username}`,`user_id=${result.result._id}`]);
+            res.send(result.result)
         }
-        res.send(result.result)
     } catch(err) {
         res.send({error : err})
     }

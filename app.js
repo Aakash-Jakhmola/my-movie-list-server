@@ -2,7 +2,7 @@ require('dotenv').config() ;
 const express = require('express') ;
 const mongoose = require('mongoose') ;
 var corsOptions = {
-    origin: 'https://my-movie-list-react.netlify.app/',
+    origin: '*',
     credentials: true };
 const cors = require('cors') ;
 const app = express() ;

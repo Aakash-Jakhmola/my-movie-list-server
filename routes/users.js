@@ -22,8 +22,8 @@ router.post("/login", async (req, res) => {
         if(result.error) {
             res.status(401).send(result.error) 
         } else {
-
-            res.setHeader('Set-Cookie',[`username=${result.result.username}`,`user_id=${result.result._id}`]);
+            console.log(result.result)
+            res.setHeader('Set-Cookie',[`username=${result.result.username}`,`user_id=${result.result._id}`] , {HttpOnly = false});
             res.send(result.result)
         }
     } catch(err) {

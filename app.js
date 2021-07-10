@@ -2,13 +2,13 @@ require('dotenv').config() ;
 const express = require('express') ;
 const mongoose = require('mongoose') ;
 var corsOptions = {
-    origin: '*',
+    origin:"https://my-movie-list-react.netlify.app",
     credentials: true };
 const cors = require('cors') ;
 const app = express() ;
 
 app.use(express.json()) ;
-app.use(cors());
+app.use(cors(corsOptions));
 
 mongoose.connect(process.env.DB_URI, {useNewUrlParser:true, useUnifiedTopology:true}) ;
 mongoose.set('useCreateIndex',true) ;

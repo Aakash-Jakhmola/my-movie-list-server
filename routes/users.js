@@ -4,6 +4,8 @@ const { User } = require('../models/user.js');
 const followfunc = require('../core/followfunctions');
 const MovieUtils = require('../core/userMovieListUtils/index')
 const UserUtils = require('../core/userUtils.js/index')
+const AuthController = require('../core/authController')
+const RequireAuth = require('../middleware/authMiddleware')
 
 router.post("/register", async (req, res) => {
     try{
@@ -22,14 +24,28 @@ router.post("/login", async (req, res) => {
         if(result.error) {
             res.status(401).send(result.error) 
         } else {
-            console.log(result.result)
-            res.setHeader('Set-Cookie',[`username=${result.result.username}`,`user_id=${result.result._id}`]);
+            const token = AuthController.CreateToken(result.result)
+            res.cookie('jwt',token,{httpOnly:true,maxAge:7*24*60*60*1000})
+            //`es.setHeader('Set-Cookie',[`username=${result.result.username}`,`user_id=${result.result._id}`]);`
             res.send(result.result)
         }
     } catch(err) {
         res.send({error : err})
     }
 });
+
+router.post("/logout",(req,res)=>{
+    //console.log('logging out')
+    const token = 'somefaketoken'
+    res.cookie('jwt',token,{httpOnly:true,maxAge:0})
+    res.cookie('username',token,{httpOnly:true,maxAge:0})
+    res.cookie('user_id',token,{httpOnly:true,maxAge:0})
+    return res.status(200).send({msg:'logged out successfully'})
+})
+
+router.get('/isAuthenticated',RequireAuth,(req,res)=>{
+    return res.status(200).send({msg:'Authenticated'})
+})
 
 router.get('/:username', async (req, res) => {
     try {
@@ -58,7 +74,7 @@ router.get('/:username/movielist', async (req, res) => {
     }
 })
 
-router.post('/addmovie', async (req, res) => {
+router.post('/addmovie',RequireAuth, async (req, res) => {
     
     let result = await MovieUtils.addMovieToList(req.body.userid,req.body.movieid,req.body.rating,req.body.review) 
     if(result.error)
@@ -119,7 +135,6 @@ router.post('/follow', async (req, res) => {
             firstname: friend.firstname,
             lastname: friend.lastname
         };
-
 
         await User.findByIdAndUpdate(userId,
             { $push: { following: obj } },

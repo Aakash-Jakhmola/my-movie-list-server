@@ -71,7 +71,7 @@ async function getMovieListAndSort(doc, orderby) {
             }
         }
         
-        console.log(movielist)
+       // console.log(movielist)
         await sortMovies(movielist,orderby)
         return {result : movielist}
     }

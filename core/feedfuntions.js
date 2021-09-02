@@ -12,7 +12,7 @@ async function AddPostToFollowersFeed(postId,userId) {
         console.log(err) ;
         return ;
     }
-    console.log(followers)
+    //console.log(followers)
 
     followers.forEach(followerID => {
         User.findByIdAndUpdate(followerID,

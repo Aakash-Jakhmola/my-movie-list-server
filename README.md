@@ -11,10 +11,7 @@ This repository is backend for **My Movie Listiaa**, written in Nodejs.
  - Install node and npm.
  - Run command `npm install` in the root.
  - Create `.env` file in root and give the following contents
-    `DB_URI=<Your db uri> <br/>
-     API_KEY=<Your tmdb api key> \n
-     CLIENT_URL=<Url from where you will make requests> \n
-     JWT_SECRET=<any string>
+    `DB_URI=<Your db uri>  API_KEY=<Your tmdb api key>  CLIENT_URL=<Url from where you will make requests>  JWT_SECRET=<any string>
      ` 
  - Run command `node app.js`. 
 

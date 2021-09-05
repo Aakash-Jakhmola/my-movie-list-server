@@ -5,6 +5,18 @@ We use [TheMovieDB](https://www.themoviedb.org) Databse for movies and TV shows.
 
 This repository is backend for **My Movie Listiaa**, written in Nodejs.
 
+## How to Run?
+
+ - Clone the repository using command `git clone https://github.com/Aakash-Jakhmola/my-movies-listiaa.git`
+ - Install node and npm.
+ - Run command `npm install` in the root.
+ - Create `.env` file in root and give the following contents
+    `DB_URI=<Your db uri>
+     API_KEY=<Your tmdb api key>
+     CLIENT_URL=<Url from where you will make requests>
+     JWT_SECRET=<any string>
+     ` 
+
 ## TODOS
 
 This repository is still incomplete and requires following things to be done:\

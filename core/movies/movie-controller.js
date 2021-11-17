@@ -13,7 +13,7 @@ const makeMovieObject = async(movieData) => {
     vote_average: movieData.vote_average,
     adult: movieData.adult,
     language: movieData.original_language,
-    poster_url: movieData.poster_path,
+    poster_url: movieData.poster_path?"https://image.tmdb.org/t/p/w400"+movieData.poster_path:'',
     movie_id: movieData.id,
   });
 

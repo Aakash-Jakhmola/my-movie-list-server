@@ -47,6 +47,7 @@ function RenderSearchedMovies(movieName) {
           let dataJson = JSON.parse(data)
           let list = []
           dataJson.results.forEach(element => {
+              console.log(element)
               list.push(new Movie(element)) ;
               //console.log(element.genre_ids)
           });

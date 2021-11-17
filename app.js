@@ -8,9 +8,10 @@ const cors = require('cors') ;
 const cookieParser = require('cookie-parser')
 const app = express() ;
 
+app.use(cookieParser());
 app.use(express.json()) ;
 app.use(cors(corsOptions));
-app.use(cookieParser());
+
 
 mongoose.connect(process.env.DB_URI, {useNewUrlParser:true, useUnifiedTopology:true}) ;
 mongoose.set('useCreateIndex',true) ;

@@ -25,9 +25,12 @@ const userRouter = require('./routes/users');
 const postRouter = require('./routes/posts');
 const movieRouter = require('./routes/movies') ;
 
+const api = require('./api/v2/movie-api');
+
 app.use('/users',userRouter);
 app.use('/posts',postRouter) ;
 app.use('/movies',movieRouter) ;
+app.use('/api/v2',api);
 
 let port = process.env.PORT || 8000;
 app.listen(port, () => console.log('server started')) ;

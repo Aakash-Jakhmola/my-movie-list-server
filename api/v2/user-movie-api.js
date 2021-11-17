@@ -130,10 +130,13 @@ router.post('/add_movie', RequireAuth, async (req, res) => {
     watch_later: watchLater,
   })
 
-  if(watchLater) {
+  if(!watchLater) {
     obj.score = score;
     obj.review = review;
   }
+
+  console.log(obj);
+
   try {
     const movie = await saveMovie(movieId);
     console.log('movie : ',movie);

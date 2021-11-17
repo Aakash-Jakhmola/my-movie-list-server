@@ -7,9 +7,12 @@ const UserUtils = require('../core/userUtils.js/index')
 const AuthController = require('../core/authController')
 const RequireAuth = require('../middleware/authMiddleware')
 
+const jwt = require("jsonwebtoken");
+
 router.post("/register", async (req, res) => {
     try{
         let result = await UserUtils.SaveUser(req.body.username,req.body.password,req.body.firstname, req.body.lastname) 
+        console.log(result)
         if(result.error)
             res.status(401)
         res.send(result)
@@ -27,8 +30,11 @@ router.post("/login", async (req, res) => {
             const token = AuthController.CreateToken(result.result)
             console.log(token);
             res.cookie('jwt',token,{httpOnly:true,maxAge:7*24*60*60*1000})
-            //`es.setHeader('Set-Cookie',[`username=${result.result.username}`,`user_id=${result.result._id}`]);`
-            res.send(result.result)
+            //res.setHeader('Set-Cookie',[`username=${result.result.username}`,`user_id=${result.result._id}`]);`
+            let data = result.result
+            data.token = token
+            console.log(data)
+            res.send(data)
         }
     } catch(err) {
         res.send({error : err})
@@ -44,7 +50,23 @@ router.post("/logout",(req,res)=>{
     return res.status(200).send({msg:'logged out successfully'})
 })
 
+router.get('/loadUser',(req,res)=>{
+    const token = req.cookies['jwt']
+    if(!token) {
+         return res.send({error:'Unauthorized'})
+    } 
+    try {
+        let decodedToken = jwt.verify(token,process.env.JWT_SECRET);
+        console.log(decodedToken)
+        return res.status(200).send(decodedToken)
+    } catch (err) {
+        console.log(err)
+        return res.status(401).send({error:"Unauthorized"})
+    }
+})
+
 router.get('/isAuthenticated',RequireAuth,(req,res)=>{
+    console.log('from here',req.cookies['jwt'])
     return res.status(200).send({msg:'Authenticated'})
 })
 
@@ -76,15 +98,19 @@ router.get('/:username/movielist', async (req, res) => {
 })
 
 router.post('/addmovie',RequireAuth, async (req, res) => {
-    
+    if(!req.body.rating) {
+        res.send({error:'please give rating'})
+        return ;
+    }
     let result = await MovieUtils.addMovieToList(req.body.userid,req.body.movieid,req.body.rating,req.body.review) 
+    console.log(result)
     if(result.error)
-        res.status(401)
-    res.send(result)
+        res.send({error:result.error})
+    else res.send(result)
 
 });
 
-router.delete('/:username/movielist', async (req, res) => {
+router.delete('/:username/movielist',RequireAuth, async (req, res) => {
     
     let result = await MovieUtils.deleteMovieFromList(req.params.username, req.query.movieid)
     if(result.err)

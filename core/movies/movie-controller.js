@@ -16,34 +16,30 @@ const makeMovieObject = async(movieData) => {
     poster_url: movieData.poster_path,
     movie_id: movieData.id,
   });
-  let saved = false;
+
   key = {"movie_id": movieObj.movie_id};
   try {
-    await Movie.updateMany(key, movieObj, {"upsert":true})
-      .then( () => {
-        saved = true;
-      })
-      .catch((e)=>{
-        saved = false;
-      })
+    await Movie.updateOne(key, movieObj, {"upsert":true})
+    return true;
   } catch(err) {
-    saved = false;
+    return false;
   }
 
-  return saved ? movieObj : null;
+  
 }
 
-const fetchMovie = async(movieId) => {
-  
-  const result = axios.get(urlfunc.GetMovieUrl(movieId))
-              .then( ( resp ) => 
-                makeMovieObject(resp.data)
-                              .then((res)=> res )               
-              )
-              .catch( (err) => console.log(err))
+const saveMovie = async(movieId) => {
+  let result = false;
+  try {
+    const movieDetails = await axios.get(urlfunc.GetMovieUrl(movieId));
+    result = await makeMovieObject(movieDetails.data);
+    return true;
+  } catch(err) {
+    console.log(err);
+  } 
   return result ;
 }
 
 module.exports = {
-  fetchMovie
+  saveMovie: saveMovie
 }

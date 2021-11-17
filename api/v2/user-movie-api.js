@@ -1,22 +1,33 @@
 const express = require('express');
 const router = express.Router();
 const { Watch } = require('../../models/watch');
-const mongoose = require('mongoose');
-const { fetchMovie } = require('../../core/movies/movie-controller');
-const constants = require('./../../constants/movie-list.constant');
-
+const { saveMovie } = require('../../core/movies/movie-controller');
+const constants = require('../../constants/movie-list.constant');
+const { authenticateUser } = require('../../utils/auth');
+const  RequireAuth = require('../../middleware/authMiddleware');
+const validator = require('../../utils/validator');
+const {User} = require('./../../models/user');
 
 
 router.get('/fetch_movie_list', async(req, res) => {
-  const userId = req.query.user_id;
+  const username = req.query.username;
+  const validateMsg = validator.validateUsername(username)
+  if(validateMsg) {
+    res.status(401).send(validateMsg);
+    return;
+  }
+
   let watchLater = false ;
+
   if(req.query.watch_later && req.query.watch_later === 'true') {
     watchLater = true;
   }
+
   const query = {
-    user_id: mongoose.Types.ObjectId(userId),
+    username,
     watch_later: watchLater,
   }
+
   let pageNumber = 1;
   if(req.query.page_number) {
     pageNumber = parseInt(req.query.page_number) ;
@@ -58,8 +69,8 @@ router.get('/fetch_movie_list', async(req, res) => {
   }
 })
 
-router.patch('/update_movie' , async (req, res) => {
-  const userId = req.query.user_id;
+router.patch('/update_movie', RequireAuth, async (req, res) => {
+  const user = await authenticateUser(req.cookies.jwt) ;
   const movieId = req.query.movie_id;
 
   const obj = {};
@@ -75,7 +86,7 @@ router.patch('/update_movie' , async (req, res) => {
   }
   
   try {
-    query = { movie_id: movieId, user_id: mongoose.Types.ObjectId(userId) };
+    query = { movie_id: movieId, username: user.username };
     await Watch.updateMany(query, obj, {upsert: true, safe: true});
     res.send('updated successfully');
   } catch(e) {
@@ -84,13 +95,13 @@ router.patch('/update_movie' , async (req, res) => {
   }
 }) ; 
 
-router.delete('/delete_movie', async(req,res)=> {
-  const userId = req.query.user_id;
+router.delete('/delete_movie', RequireAuth, async(req,res)=> {
+  const user = await authenticateUser(req.cookies.jwt) ;
   const movieId = req.query.movie_id;
 
   try {
     const query = {
-      user_id: mongoose.Types.ObjectId(userId),
+      username: user.username,
       movie_id: movieId
     };
     await Watch.deleteOne(query);
@@ -98,26 +109,23 @@ router.delete('/delete_movie', async(req,res)=> {
   } catch(e) {
     res.status(500).send('deletion failed');
   }
-
 }) 
 
 
-router.post('/add_movie', async (req, res) => {
+router.post('/add_movie', RequireAuth, async (req, res) => {
   
-  const userId = req.query.user_id;
+  const user = await authenticateUser(req.cookies.jwt) ;
   const movieId = req.query.movie_id;
-
   const score = req.body.score;
   const review = req.body.review;
   
   let watchLater = false ;
-
   if(req.body.watch_later && req.body.watch_later === 'true') {
     watchLater = true;
   }
 
   const obj = new Watch({
-    user_id: userId,
+    username: user.username,
     movie_id: movieId,
     watch_later: watchLater,
   })
@@ -126,15 +134,19 @@ router.post('/add_movie', async (req, res) => {
     obj.score = score;
     obj.review = review;
   }
-
-  fetchMovie(movieId).then( () => {
-    obj.save().then(() => {
-      res.send('successfully saved');
-    }, (e) => {
-      res.status(400).send(e);
-    });
-  });
- 
+  try {
+    const movie = await saveMovie(movieId);
+    console.log('movie : ',movie);
+    if(movie) {
+      await obj.save();
+      res.send('updated successfully');
+    } else {
+      res.status(401).send('addition unsuccessfully');
+    }
+  } catch(err) {
+    res.status(401).send('addition unsuccessfully');
+  }
+  res.end(); 
 })
 
 module.exports = router;

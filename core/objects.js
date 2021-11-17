@@ -12,7 +12,7 @@ class Movie {
         this.adult = movieData.adult
         this.language = movieData.original_language
         /*requires reconsideration*/
-        this.poster_url = "https://image.tmdb.org/t/p/w200"+movieData.poster_path
+        this.poster_url = movieData.poster_path?"https://image.tmdb.org/t/p/w400"+movieData.poster_path:''
         if(movieData.genre_ids) {
             movieData.genre_ids.forEach((genre_id)=>{
                 this.genres.push(constants.GenreMap.get(genre_id))

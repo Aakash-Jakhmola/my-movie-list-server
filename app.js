@@ -25,7 +25,7 @@ const userRouter = require('./routes/users');
 const postRouter = require('./routes/posts');
 const movieRouter = require('./routes/movies') ;
 
-const api = require('./api/v2/movie-api');
+const api = require('./api/v2/user-movie-api');
 
 app.use('/users',userRouter);
 app.use('/posts',postRouter) ;

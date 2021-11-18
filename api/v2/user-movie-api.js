@@ -44,7 +44,7 @@ router.get('/fetch_movie_list', async(req, res) => {
   if(req.query.sort_key && req.query.sort_key === 'score' ) {
     sortKey['score'] = -1;
   } else  {
-    sortKey['_id'] = 1;
+    sortKey['_id'] = -1;
   }
   
   try {

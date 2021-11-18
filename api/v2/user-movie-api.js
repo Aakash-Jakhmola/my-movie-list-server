@@ -69,9 +69,49 @@ router.get('/fetch_movie_list', async(req, res) => {
   }
 })
 
+router.post('/add_movie', RequireAuth, async (req, res) => {
+  
+  const user = await authenticateUser(req.cookies.jwt) ;
+  const movieId = req.body.movie_id;
+  const score = req.body.score;
+  const review = req.body.review;
+  
+  let watchLater = false ;
+  if(req.body.watch_later && req.body.watch_later === 'true') {
+    watchLater = true;
+  }
+
+  const obj = new Watch({
+    username: user.username,
+    movie_id: movieId,
+    watch_later: watchLater,
+  })
+
+  if(!watchLater) {
+    obj.score = score;
+    obj.review = review;
+  }
+
+  console.log(obj);
+
+  try {
+    const movie = await saveMovie(movieId);
+    console.log('movie : ',movie);
+    if(movie) {
+      await obj.save();
+      res.send('updated successfully');
+    } else {
+      res.status(401).send('addition unsuccessfully');
+    }
+  } catch(err) {
+    res.status(401).send('addition unsuccessfully');
+  }
+  res.end(); 
+})
+
 router.patch('/update_movie', RequireAuth, async (req, res) => {
   const user = await authenticateUser(req.cookies.jwt) ;
-  const movieId = req.query.movie_id;
+  const movieId = req.body.movie_id;
 
   const obj = {};
   if(req.body.new_score)
@@ -110,46 +150,5 @@ router.delete('/delete_movie', RequireAuth, async(req,res)=> {
     res.status(500).send('deletion failed');
   }
 }) 
-
-
-router.post('/add_movie', RequireAuth, async (req, res) => {
-  
-  const user = await authenticateUser(req.cookies.jwt) ;
-  const movieId = req.query.movie_id;
-  const score = req.body.score;
-  const review = req.body.review;
-  
-  let watchLater = false ;
-  if(req.body.watch_later && req.body.watch_later === 'true') {
-    watchLater = true;
-  }
-
-  const obj = new Watch({
-    username: user.username,
-    movie_id: movieId,
-    watch_later: watchLater,
-  })
-
-  if(!watchLater) {
-    obj.score = score;
-    obj.review = review;
-  }
-
-  console.log(obj);
-
-  try {
-    const movie = await saveMovie(movieId);
-    console.log('movie : ',movie);
-    if(movie) {
-      await obj.save();
-      res.send('updated successfully');
-    } else {
-      res.status(401).send('addition unsuccessfully');
-    }
-  } catch(err) {
-    res.status(401).send('addition unsuccessfully');
-  }
-  res.end(); 
-})
 
 module.exports = router;

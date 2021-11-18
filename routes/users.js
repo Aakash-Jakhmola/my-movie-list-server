@@ -27,13 +27,11 @@ router.post("/login", async (req, res) => {
         if(result.error) {
             res.status(401).send(result.error) 
         } else {
+        
             const token = AuthController.CreateToken(result.result)
-            console.log(token);
             res.cookie('jwt',token,{maxAge:7*24*60*60*1000})
             //res.setHeader('Set-Cookie',[`username=${result.result.username}`,`user_id=${result.result._id}`]);`
-            let data = result.result
-            data.token = token
-            console.log(data)
+            let data = UserUtils.makeUser(result.result)
             res.send(data)
         }
     } catch(err) {

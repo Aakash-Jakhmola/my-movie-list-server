@@ -14,7 +14,7 @@ const validateScore = (score) => {
     return error('score cannot be null');
   } else if(typeof(score) !== 'number') {
     return error('score must be number');
-  } else if(obj.score < 1 && obj.score > 10) {
+  } else if(score < 1 && score > 10) {
     return error('score must be in range 1 to 10');
   } else {
     return success();
@@ -27,7 +27,7 @@ const validateReview = (review) => {
     return error('review cannot be null');
   } else if(typeof(review) !== 'string') {
     return error('review must be a string');
-  } else if(obj.review.length > 150) {
+  } else if(review.length > 150) {
     return error('review must be less than 150 characters');
   } else {
     return success();
@@ -35,7 +35,9 @@ const validateReview = (review) => {
 }
 
 const validateMovieId = (movieId) => {
-  if(typeof(movieId) !== 'number') {
+  if(movieId === null || movieId === undefined) {
+    return error('movie_id cannot be null');
+  } else if(typeof(movieId) !== 'number') {
     return error('movie_id should be a number');
   } else {
     return success();

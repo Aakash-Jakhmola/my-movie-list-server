@@ -8,8 +8,9 @@ const getUserDetailsFromDb = async (username) => {
         username: 1,
         firstname: 1,
         lastname: 1,
+        movies_count: 1,
         password: 1,
-        movies_count: { $size: '$movies' },
+        watch_later_count: 1,
         followers_count: { $size: '$followers' },
         following_count: { $size: '$following' },
       })

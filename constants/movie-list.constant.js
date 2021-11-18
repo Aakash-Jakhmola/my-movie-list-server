@@ -4,4 +4,4 @@ function define(name, value) {
       enumerable: true
   });
 }
-define('PAGE_SIZE', 1)
+define('PAGE_SIZE', 18)

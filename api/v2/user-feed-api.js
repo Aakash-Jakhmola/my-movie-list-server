@@ -16,6 +16,8 @@ router.get('/feed', RequireAuth, async(req, res) => {
     const followersData = await User.findOne( {username : user.username} , {_id: 0, 'following.username': 1} );
     const followers = [];
 
+    console.log(followersData);
+
     followersData.following.map((val) => {
       followers.push(val.username);
     })

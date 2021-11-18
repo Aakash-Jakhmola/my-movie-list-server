@@ -5,7 +5,7 @@ const { Movie } = require('./../../models/movie')
 
 const makeMovieObject = async(movieData) => {
   const movieObj = new Movie( {
-    title: movieData.original_title,
+    title: movieData.title,
     overview: movieData.overview,
     release_date: movieData.release_date,
     runtime: movieData.runtime,

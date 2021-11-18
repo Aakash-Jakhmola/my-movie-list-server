@@ -11,7 +11,10 @@ const watchSchema = new mongoose.Schema({
   },
   score: Number,
   review: String,
-  watch_later: Boolean,
+  watch_later: {
+    type: Boolean,
+    required: true,
+  }
 });
 
 watchSchema.index({username: 1, movie_id: 1}, {unique: true, required: true})

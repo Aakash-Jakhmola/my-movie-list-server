@@ -1,17 +1,17 @@
 const { User } = require('./../models/user');
 
-const updateMovieCount = async(user_id, list_type, amount) => {
+const updateMovieCount = async(user_id, list) => {
 
   const query = {};
-  query[list_type] = amount;
+  list.map((item) => {
+    query[item.type] = item.amount;
+  })
   
-  try {
-    await User.findByIdAndUpdate(user_id, 
-      { $inc : query }
-    )
-  } catch(e) {
-
-  }
+  
+  await User.findByIdAndUpdate(user_id, 
+    { $inc : query }
+  )
+  
 }
 
 module.exports = {

@@ -124,7 +124,7 @@ router.post('/add_movie', RequireAuth, async (req, res) => {
     if(movie) {
       await obj.save();
       const list_type = watchLater ? 'watch_later_count' :'movies_count';
-      await updateMovieCount(user.id, list_type, 1);
+      await updateMovieCount(user.id, [{ type: list_type, amount: 1}]);
       res.send('updated successfully');
     } else {
       res.status(401).send('could not add movie');
@@ -164,11 +164,17 @@ router.patch('/update_movie', RequireAuth, async (req, res) => {
       res.status(401).send(validateMsg);
       return;
     }
+  } else if(req.body.watch_later === true){
+    res.status(401).send({error: 'not allowed to update'});
+    return;
   }
   
   try {
     query = { movie_id: movieId, username: user.username };
     await Watch.updateMany(query, obj, {upsert: true, safe: true});
+    if(req.body.watch_later === false) {
+      await updateMovieCount(user.id, [{ type: 'watch_later_count', amount: -1}, {type: 'movies_count', amount: 1}]);
+    }
     res.send('updated successfully');
   } catch(e) {
     console.log(e);
@@ -179,7 +185,6 @@ router.patch('/update_movie', RequireAuth, async (req, res) => {
 router.delete('/delete_movie', RequireAuth, async(req,res)=> {
   const user = await authenticateUser(req.cookies.jwt) ;
   const movieId = req.query.movie_id;
-   
   const watchLater = req.query.watch_later === 'true';
 
   try {
@@ -188,10 +193,15 @@ router.delete('/delete_movie', RequireAuth, async(req,res)=> {
       movie_id: movieId,
       watch_later: watchLater
     };
-    await Watch.deleteOne(query);
+    const doc = await Watch.findOneAndDelete(query);
+    console.log(doc);
     const list_type = watchLater ? 'watch_later_count' :'movies_count';
-    await updateMovieCount(user.id, list_type, -1);
-    res.send('deleted successfully');
+    if(doc) {
+      await updateMovieCount(user.id, [{ type: list_type, amount: -1}]);
+      res.send('deleted successfully');
+    } else {
+      res.status(401).send({error: 'document not found'});
+    }
   } catch(e) {
     res.status(500).send('deletion failed');
   }

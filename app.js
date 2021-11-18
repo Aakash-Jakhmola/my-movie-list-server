@@ -13,7 +13,7 @@ app.use(express.json()) ;
 app.use(cors(corsOptions));
 
 
-mongoose.connect(process.env.DB_URI, {useNewUrlParser:true, useUnifiedTopology:true}) ;
+mongoose.connect(process.env.DB_URI, {useNewUrlParser:true, useUnifiedTopology:true, useFindAndModify:true}) ;
 mongoose.set('useCreateIndex',true) ;
 const con = mongoose.connection
 

@@ -2,26 +2,13 @@ const { User } = require('../../models/user.js')
 
 const getUserDetailsFromDb = async (username) => {
   try {
-    let foundUser = await User.findOne({ username: username },
-      {
-        _id:1,
-        username: 1,
-        firstname: 1,
-        lastname: 1,
-        movies_count: 1,
-        password: 1,
-        watch_later_count: 1,
-        followers_count: { $size: '$followers' },
-        following_count: { $size: '$following' },
-      })
-
+    let foundUser = await User.findOne({ username: username })
     if (!foundUser)
       return { error: "invalid username" }
     return { result: foundUser }
   } catch (err) {
     return { error: err }
   }
-
 }
 
 

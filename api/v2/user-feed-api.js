@@ -3,7 +3,7 @@ const RequireAuth = require('./../../middleware/authMiddleware');
 const { authenticateUser } = require('./../../utils/auth')
 const { Watch } = require('../../models/watch');
 const constants = require('./../../constants/movie-list.constant');
-const { getFollowing } = require('./../../core/user-controller');
+const { getFollowing } = require('./../../controllers/user-controller');
 
 
 router.get('/feed', RequireAuth, async(req, res) => {
@@ -20,8 +20,6 @@ router.get('/feed', RequireAuth, async(req, res) => {
     followersData.map((val) => {
       followers.push(val.following_details.username);
     })
-
-
 
     const result = await Watch.aggregate([
       { $match : { username : { $in : followers}, }},

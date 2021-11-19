@@ -3,8 +3,8 @@ const { User } = require('./../../models/user');
 const RequireAuth = require('./../../middleware/authMiddleware');
 const { authenticateUser } = require('./../../utils/auth');
 const { Follow } = require('./../../models/follows')
-const { getFollowers, getFollowing } = require('./../../core/user-controller');
-const { updateMovieCount } = require('./../../core/user-controller');
+const { getFollowers, getFollowing, moviesCount } = require('../../controllers/user-controller');
+const { updateMovieCount } = require('../../controllers/user-controller');
 
 router.get('/followers', async(req, res) => {
   const followers = await getFollowers(req.query.username);
@@ -77,9 +77,24 @@ router.delete('/unfollow', RequireAuth, async(req, res) => {
       res.status(401).send({error: 'could not find document'});
     }
   } catch(e) {
+    console.log(e);
     res.status(500).send('Internal Server Error');
   }
 });
+
+
+router.get('/movies_count', async(req,res)=>{
+  const user= await authenticateUser(req.cookies.jwt);
+  try {
+    const result = await moviesCount(req.query.username);
+    console.log(result);
+    res.send({movies_count: result});
+    return;
+  } catch(err) {
+    console.log(err);
+    res.status(500).send('Internal Server Error');
+  }
+})
 
 
 

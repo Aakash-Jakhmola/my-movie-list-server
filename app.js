@@ -39,3 +39,7 @@ app.use('/api/v2/profile', userProfileRouter);
 
 let port = process.env.PORT || 8000;
 app.listen(port, () => console.log('server started')) ;
+
+module.exports = {
+  con,
+}

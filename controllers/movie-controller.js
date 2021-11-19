@@ -1,6 +1,6 @@
 const axios = require('axios');
-const urlfunc = require('./../urlfunctions');
-const { Movie } = require('./../../models/movie')
+const urlfunc = require('../core/urlfunctions');
+const { Movie } = require('../models/movie')
 
 
 const makeMovieObject = (movieData) => {
@@ -16,7 +16,6 @@ const makeMovieObject = (movieData) => {
     poster_url: movieData.poster_path?"https://image.tmdb.org/t/p/w400"+movieData.poster_path:'',
     movie_id: movieData.id,
   }); 
-  console.log(movieObj);
   return movieObj;
 }
 
@@ -30,8 +29,7 @@ const saveMovieInDB = async(movieData) => {
     return false;
   }
 }
-
-
+ 
 
 const saveMovie = async(movieId) => {
   let result = false;

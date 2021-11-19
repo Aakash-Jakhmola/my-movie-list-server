@@ -32,7 +32,7 @@ router.post("/login", async (req, res) => {
             const token = AuthController.CreateToken(result.result)
             res.cookie('jwt',token,{maxAge:7*24*60*60*1000})
             //res.setHeader('Set-Cookie',[`username=${result.result.username}`,`user_id=${result.result._id}`]);`
-            let data = UserUtils.makeUser(result.result)
+            let data = await UserUtils.makeUser(result.result)
             res.send(data)
         }
     } catch(err) {

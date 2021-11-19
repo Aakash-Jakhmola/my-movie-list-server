@@ -1,5 +1,8 @@
-const { User } = require('./../models/user');
-const {Follow} = require('./../models/follows');
+const { User } = require('../models/user');
+const {Follow} = require('../models/follows');
+const { Watch } = require('../models/watch');
+
+
 
 const updateMovieCount = async(username, list) => {
   const query = {};
@@ -63,9 +66,63 @@ const getFollowing = async(username) => {
   return following;
 };
 
+const moviesCount = async(username, watchLater = false) => {
+  let noOfMovies = 0 ;
+  try {
+    const result = await Watch.aggregate([ 
+      { $match: {username: username, watch_later: watchLater}},
+      { $count: "movies_count"}
+    ]) ;
+    if(result.length > 0) {
+      noOfMovies = result[0].movies_count;
+    }
+  } catch(e) {
+    throw new Error('counting failed');
+  }
+  return noOfMovies;
+};
+
+const followersCount = async(username) => {
+  
+  let noOfFollowers = 0;
+  try {
+    const result = await Follow.aggregate([
+      { $match : {following_username : username}},
+      { $count : "followers_count"}
+    ]);
+    console.log(result);
+    if(result.length > 0) {
+      noOfFollowers = result[0].followers_count;
+    }
+  } catch(e) {
+    throw new Error('Counting Followers Failed');
+  }
+  return noOfFollowers;
+};
+ 
+const followingCount = async(username) => {
+  
+  let noOfFollowing = 0;
+  try {
+    const result = await Follow.aggregate([
+      { $match : {username : username}},
+      { $count : "following_count"}
+    ]);
+    console.log(result);
+    if(result.length > 0) {
+      noOfFollowing = result[0].following_count;
+    }
+  } catch(e) {
+    throw new Error('Counting Following Failed');
+  }
+  return noOfFollowing;
+};
+
 module.exports = {
   updateMovieCount,
   getFollowers,
   getFollowing,
-
+  moviesCount,
+  followersCount,
+  followingCount,
 }

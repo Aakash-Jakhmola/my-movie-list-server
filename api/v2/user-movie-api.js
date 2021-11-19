@@ -1,13 +1,13 @@
 const express = require('express');
 const router = express.Router();
 const { Watch } = require('../../models/watch');
-const { saveMovie } = require('../../core/movies/movie-controller');
+const { saveMovie } = require('./../../controllers/movie-controller');
 const constants = require('../../constants/movie-list.constant');
 const { authenticateUser } = require('../../utils/auth');
 const  RequireAuth = require('../../middleware/authMiddleware');
 const validator = require('../../utils/validator');
 const { User} = require('./../../models/user');
-const {updateMovieCount} = require('./../../core/user-controller')
+const {updateMovieCount} = require('./../../controllers/user-controller')
 
 /* 
   query parameters
@@ -20,7 +20,7 @@ router.get('/fetch_movie_list', async(req, res) => {
   const username = req.query.username;
   const validateMsg = validator.validateUsername(username)
   if(validateMsg) {
-    res.status(401).send(validateMsg);
+    res.status(400).send(validateMsg);
     return;
   }
 
@@ -72,7 +72,7 @@ router.get('/fetch_movie_list', async(req, res) => {
     res.send(result);
   } catch(err) {
     console.log(err);
-    res.status(401).send('fetch failed');
+    res.status(400).send('fetch failed');
   }
 })
 
@@ -87,7 +87,7 @@ router.post('/add_movie', RequireAuth, async (req, res) => {
 
   let validateMsg = validator.validateMovieId(movieId)
   if(validateMsg) {
-    res.status(401).send(validateMsg);
+    res.status(400).send(validateMsg);
     return;
   }
   
@@ -105,12 +105,12 @@ router.post('/add_movie', RequireAuth, async (req, res) => {
   if(!watchLater) {
     validateMsg = validator.validateScore(score);
     if(validateMsg) {
-      res.status(401).send(validateMsg);
+      res.status(400).send(validateMsg);
       return;
     } 
     validateMsg = validator.validateReview(review);
     if(validateMsg) {
-      res.status(401).send(validateMsg);
+      res.status(400).send(validateMsg);
       return;
     }
     obj.score = score;
@@ -123,14 +123,14 @@ router.post('/add_movie', RequireAuth, async (req, res) => {
     const movie = await saveMovie(movieId);
     if(movie) {
       await obj.save();
-      const list_type = watchLater ? 'watch_later_count' :'movies_count';
-      await updateMovieCount(user.username, [{ type: list_type, amount: 1}]);
+      // const list_type = watchLater ? 'watch_later_count' :'movies_count';
+      // await updateMovieCount(user.username, [{ type: list_type, amount: 1}]);
       res.send('updated successfully');
     } else {
-      res.status(401).send('could not add movie');
+      res.status(400).send('could not add movie');
     }
   } catch(err) {
-    res.status(401).send('could not add movie');
+    res.status(400).send('could not add movie');
   }
   res.end(); 
 })
@@ -140,7 +140,7 @@ router.patch('/update_movie', RequireAuth, async (req, res) => {
   const movieId = req.body.movie_id;
   let validateMsg = validator.validateMovieId(movieId);
   if(validateMsg) {
-    res.status(401).send(validateMsg);
+    res.status(400).send(validateMsg);
     return;
   }
   const obj = {};
@@ -156,25 +156,25 @@ router.patch('/update_movie', RequireAuth, async (req, res) => {
     obj.watch_later = false;
     validateMsg = validator.validateScore(obj.score) ;
     if(validateMsg){
-      res.status(401).send(validateMsg);
+      res.status(400).send(validateMsg);
       return;
     }
     validateMsg = validator.validateReview(obj.review);
     if(validateMsg) {
-      res.status(401).send(validateMsg);
+      res.status(400).send(validateMsg);
       return;
     }
   } else if(req.body.watch_later === true){
-    res.status(401).send({error: 'not allowed to update'});
+    res.status(400).send({error: 'not allowed to update'});
     return;
   }
   
   try {
     query = { movie_id: movieId, username: user.username };
     await Watch.updateMany(query, obj, {upsert: true, safe: true});
-    if(req.body.watch_later === false) {
-      await updateMovieCount(user.username, [{ type: 'watch_later_count', amount: -1}, {type: 'movies_count', amount: 1}]);
-    }
+    // if(req.body.watch_later === false) {
+    //   await updateMovieCount(user.username, [{ type: 'watch_later_count', amount: -1}, {type: 'movies_count', amount: 1}]);
+    // }
     res.send('updated successfully');
   } catch(e) {
     console.log(e);
@@ -194,13 +194,13 @@ router.delete('/delete_movie', RequireAuth, async(req,res)=> {
       watch_later: watchLater
     };
     const doc = await Watch.findOneAndDelete(query);
-    console.log(doc);
-    const list_type = watchLater ? 'watch_later_count' :'movies_count';
+    // console.log(doc);
+    // const list_type = watchLater ? 'watch_later_count' :'movies_count';
     if(doc) {
-      await updateMovieCount(user.username, [{ type: list_type, amount: -1}]);
+      // await updateMovieCount(user.username, [{ type: list_type, amount: -1}]);
       res.send('deleted successfully');
     } else {
-      res.status(401).send({error: 'document not found'});
+      res.status(400).send({error: 'document not found'});
     }
   } catch(e) {
     res.status(500).send('deletion failed');

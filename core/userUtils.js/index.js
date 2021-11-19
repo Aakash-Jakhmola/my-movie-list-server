@@ -11,8 +11,6 @@ const makeUser = (userData) => {
     lastname: userData.lastname,
     movies_count: userData.movies_count,
     watch_later_count: userData.watch_later_count,
-    followers_count: userData.watch_later_count,
-    following_count: userData.following_count,
   };
   return user;
 }

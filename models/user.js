@@ -14,22 +14,37 @@ const userSchema = new mongoose.Schema({
       unique:true
 	  },
 
+    password : {
+      type : String,
+      required : true
+    },
+
     image: String,
 
     movies_count: {
       type: Number,
       default: 0,
+      required: true
     },
 
     watch_later_count: {
       type: Number,
       default: 0,
+      required: true
     },
     
-    password : {
-        type : String,
-        required : true
+    followers_count : {
+      type: Number,
+      default: 0,
+      required: true
     },
+
+    following_count : {
+      type: Number,
+      default: 0,
+      required: true
+    },
+    
 }) ;
 
 

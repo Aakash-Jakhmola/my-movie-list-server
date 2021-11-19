@@ -20,7 +20,7 @@ const makeMovieObject = async(movieData) => {
 
 
 const saveMovieInDB = async(movieData) => {
-  key = {"movie_id": movieObj.movie_id};
+  key = {"movie_id": movieData.id};
   try {
     await Movie.updateOne(key, makeMovieObject(movieData), {"upsert":true})
     return true;

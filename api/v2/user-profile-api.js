@@ -3,7 +3,8 @@ const { User } = require('./../../models/user');
 const RequireAuth = require('./../../middleware/authMiddleware');
 const { authenticateUser } = require('./../../utils/auth');
 const { Follow } = require('./../../models/follows')
-const { getFollowers, getFollowing } = require('./../../core/user-controller')
+const { getFollowers, getFollowing } = require('./../../core/user-controller');
+const { updateMovieCount } = require('./../../core/user-controller');
 
 router.get('/followers', async(req, res) => {
   const followers = await getFollowers(req.query.username);
@@ -28,6 +29,8 @@ router.get('/following', async(req, res) => {
 
 router.post('/follow', RequireAuth ,async(req, res) => { 
   const user = await authenticateUser(req.cookies.jwt);
+
+  console.log(user);
   const followingUsername = req.body.following_username;
   
   if(followingUsername === null || followingUsername === undefined || followingUsername === '') {
@@ -49,6 +52,8 @@ router.post('/follow', RequireAuth ,async(req, res) => {
         following_username : followingUsername
       });
       await obj.save();
+      updateMovieCount(user.username, [{ type: 'following_count', amount: 1}]);
+      updateMovieCount(followingUsername, [{type: 'followers_count', amount: 1}]);
       res.send('saved successfully');
     } else {
       res.status(401).send({error: 'following user does not exist'});
@@ -65,6 +70,8 @@ router.delete('/unfollow', RequireAuth, async(req, res) => {
   try {
     const doc = await Follow.findOneAndDelete({username : user.username, following_username: followingUsername});
     if(doc) {
+      await Promies.all( [ updateMovieCount(user.username, [{ type: 'following_count', amount: -1}]),
+                           updateMovieCount(followingUsername, [{type: 'followers_count', amount: -1}]) ]);
       res.send('unfollowed successfully');
     } else {
       res.status(401).send({error: 'could not find document'});

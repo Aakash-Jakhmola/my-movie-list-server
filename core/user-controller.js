@@ -1,12 +1,12 @@
 const { User } = require('./../models/user');
 const {Follow} = require('./../models/follows');
 
-const updateMovieCount = async(user_id, list) => {
+const updateMovieCount = async(username, list) => {
   const query = {};
   list.map((item) => {
     query[item.type] = item.amount;
   })
-  await User.findByIdAndUpdate(user_id, 
+  await User.findOneAndUpdate( {username : username}, 
     { $inc : query }
   )
 };

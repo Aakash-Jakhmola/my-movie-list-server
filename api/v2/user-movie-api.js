@@ -124,7 +124,7 @@ router.post('/add_movie', RequireAuth, async (req, res) => {
     if(movie) {
       await obj.save();
       const list_type = watchLater ? 'watch_later_count' :'movies_count';
-      await updateMovieCount(user.id, [{ type: list_type, amount: 1}]);
+      await updateMovieCount(user.username, [{ type: list_type, amount: 1}]);
       res.send('updated successfully');
     } else {
       res.status(401).send('could not add movie');
@@ -173,7 +173,7 @@ router.patch('/update_movie', RequireAuth, async (req, res) => {
     query = { movie_id: movieId, username: user.username };
     await Watch.updateMany(query, obj, {upsert: true, safe: true});
     if(req.body.watch_later === false) {
-      await updateMovieCount(user.id, [{ type: 'watch_later_count', amount: -1}, {type: 'movies_count', amount: 1}]);
+      await updateMovieCount(user.username, [{ type: 'watch_later_count', amount: -1}, {type: 'movies_count', amount: 1}]);
     }
     res.send('updated successfully');
   } catch(e) {
@@ -197,7 +197,7 @@ router.delete('/delete_movie', RequireAuth, async(req,res)=> {
     console.log(doc);
     const list_type = watchLater ? 'watch_later_count' :'movies_count';
     if(doc) {
-      await updateMovieCount(user.id, [{ type: list_type, amount: -1}]);
+      await updateMovieCount(user.username, [{ type: list_type, amount: -1}]);
       res.send('deleted successfully');
     } else {
       res.status(401).send({error: 'document not found'});

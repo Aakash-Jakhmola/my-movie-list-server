@@ -30,17 +30,8 @@ const userSchema = new mongoose.Schema({
         type : String,
         required : true
     },
-
-    followers : [{
-        username: String,
-        _id: false 
-    }],
-
-    following : [{
-        username: String,
-        _id: false
-    }]
 }) ;
+
 
 const User = mongoose.model('User', userSchema) ;
 

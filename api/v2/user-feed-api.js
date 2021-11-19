@@ -1,9 +1,10 @@
 const router = require('express').Router();
 const RequireAuth = require('./../../middleware/authMiddleware');
 const { authenticateUser } = require('./../../utils/auth')
-const { User } = require('./../../models/user');
 const { Watch } = require('../../models/watch');
-const constants = require('./../../constants/movie-list.constant')
+const constants = require('./../../constants/movie-list.constant');
+const { getFollowing } = require('./../../core/user-controller');
+
 
 router.get('/feed', RequireAuth, async(req, res) => {
   const user = await authenticateUser(req.cookies.jwt) ;
@@ -13,18 +14,18 @@ router.get('/feed', RequireAuth, async(req, res) => {
   }
   
   try {
-    const followersData = await User.findOne( {username : user.username} , {_id: 0, 'following.username': 1} );
+    const followersData = await getFollowing(user.username);
     const followers = [];
 
-    console.log(followersData);
-
-    followersData.following.map((val) => {
-      followers.push(val.username);
+    followersData.map((val) => {
+      followers.push(val.following_details.username);
     })
+
+
 
     const result = await Watch.aggregate([
       { $match : { username : { $in : followers}, }},
-      { $sort : { _id: 1}},
+      { $sort : { _id: -1}},
       { $skip : (pageNumber- 1) * constants.PAGE_SIZE },
       { $limit : constants.PAGE_SIZE },
       { $project: { 

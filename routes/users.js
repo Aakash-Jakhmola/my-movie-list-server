@@ -5,7 +5,8 @@ const followfunc = require('../core/followfunctions');
 const MovieUtils = require('../core/userMovieListUtils/index')
 const UserUtils = require('../core/userUtils.js/index')
 const AuthController = require('../core/authController')
-const RequireAuth = require('../middleware/authMiddleware')
+const RequireAuth = require('../middleware/authMiddleware');
+const { authenticateUser } = require('./../utils/auth')
 
 const jwt = require("jsonwebtoken");
 
@@ -130,9 +131,10 @@ router.patch('/:username/movielist', async (req, res) => {
 
 })
 
-router.post('/follow', async (req, res) => {
+router.post('/follow',RequireAuth, async (req, res) => {
 
-    const userId = req.body.userid;
+    const user = await authenticateUser(req.cookies.jwt) ;
+    const userId = user.id;
     const friendUsername = req.body.username;
 
     try {
@@ -155,10 +157,7 @@ router.post('/follow', async (req, res) => {
         }
 
         const obj = {
-            userid: friend._id,
-            username: friendUsername,
-            firstname: friend.firstname,
-            lastname: friend.lastname
+            username: friendUsername, 
         };
 
         await User.findByIdAndUpdate(userId,

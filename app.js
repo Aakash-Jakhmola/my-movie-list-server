@@ -28,12 +28,14 @@ const movieRouter = require('./routes/movies') ;
 
 const userMovieApiRouter = require('./api/v2/user-movie-api');
 const userFeedApiRouter = require('./api/v2/user-feed-api');
+const userProfileRouter = require('./api/v2/user-profile-api');
 
 app.use('/users',userRouter);
 app.use('/posts',postRouter) ;
 app.use('/movies',movieRouter) ;
 app.use('/api/v2', userMovieApiRouter);
 app.use('/api/v2/users', userFeedApiRouter);
+app.use('/api/v2/profile', userProfileRouter);
 
 let port = process.env.PORT || 8000;
 app.listen(port, () => console.log('server started')) ;

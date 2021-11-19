@@ -41,6 +41,7 @@ function RenderSearchedMovies(movieName) {
     https.get(url, (resp) => {
         let data = '';
         resp.on('data', (chunk) => {
+          console.log("chunk", chunk);
           data += chunk;
         });
         resp.on('end', () => {

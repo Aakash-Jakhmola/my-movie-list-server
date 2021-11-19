@@ -3,8 +3,8 @@ const urlfunc = require('./../urlfunctions');
 const { Movie } = require('./../../models/movie')
 
 
-const makeMovieObject = async(movieData) => {
-  return new Movie( {
+const makeMovieObject = (movieData) => {
+  const movieObj = new Movie( {
     title: movieData.title,
     overview: movieData.overview,
     release_date: movieData.release_date,
@@ -16,6 +16,8 @@ const makeMovieObject = async(movieData) => {
     poster_url: movieData.poster_path?"https://image.tmdb.org/t/p/w400"+movieData.poster_path:'',
     movie_id: movieData.id,
   }); 
+  console.log(movieObj);
+  return movieObj;
 }
 
 

@@ -12,8 +12,8 @@ const makeUser = async(userData) => {
     lastname: userData.lastname,
     movies_count: userData.movies_count,
     watch_later_count: userData.watch_later_count,
-    followers_count: await followersCount(userData.username),
-    following_count: await followingCount(userData.username),
+    followers_count: userData.followers_count,
+    following_count: userData.following_count,
   };
   return user;
 }

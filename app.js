@@ -14,8 +14,9 @@ app.use(express.json()) ;
 app.use(cors(corsOptions));
 
 
-const cc = mongoose.connect(process.env.DB_URI, {useNewUrlParser:true, useUnifiedTopology:true, useFindAndModify:true}) ;
+mongoose.connect(process.env.DB_URI, {useNewUrlParser:true, useUnifiedTopology:true}) ;
 mongoose.set('useCreateIndex',true) ;
+mongoose.set('useFindAndModify', false)
 const con = mongoose.connection
 
 con.on('error', console.error.bind(console, 'connection error:'));
@@ -40,7 +41,3 @@ app.use('/api/v2/profile', userProfileRouter);
 
 let port = process.env.PORT || 8000;
 app.listen(port, () => console.log('server started')) ;
-
-module.exports = {
-  cc,
-}

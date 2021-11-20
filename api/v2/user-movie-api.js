@@ -6,10 +6,7 @@ const constants = require('../../constants/movie-list.constant');
 const { authenticateUser } = require('../../utils/auth');
 const  RequireAuth = require('../../middleware/authMiddleware');
 const validator = require('../../utils/validator');
-const { User} = require('./../../models/user');
-const {updateMovieCount, addMovieToUserList, removeMovieFromUserList} = require('./../../controllers/user-controller')
-const {con} = require('./../../app');
-const mongoose = require('mongoose');
+const { addMovieToUserList, removeMovieFromUserList} = require('./../../controllers/user-controller')
 
 /* 
   Returns movie list/ watch later list for the given usersname,
@@ -141,7 +138,10 @@ router.post('/add_movie', RequireAuth, async (req, res) => {
   res.end(); 
 })
 
+
+
 router.patch('/update_movie', RequireAuth, async (req, res) => {
+  
   const user = await authenticateUser(req.cookies.jwt) ;
   const movieId = req.body.movie_id;
   let validateMsg = validator.validateMovieId(movieId);

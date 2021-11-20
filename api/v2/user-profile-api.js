@@ -3,8 +3,7 @@ const { User } = require('./../../models/user');
 const RequireAuth = require('./../../middleware/authMiddleware');
 const { authenticateUser } = require('./../../utils/auth');
 const { Follow } = require('./../../models/follows')
-const { getFollowers, getFollowing, moviesCount } = require('../../controllers/user-controller');
-const { updateMovieCount } = require('../../controllers/user-controller');
+const { getFollowers, getFollowing, moviesCount, addFollower, removeFollower } = require('../../controllers/user-controller');
 
 router.get('/followers', async(req, res) => {
   const followers = await getFollowers(req.query.username);
@@ -48,18 +47,17 @@ router.post('/follow', RequireAuth ,async(req, res) => {
     const doc = await User.findOne({username : followingUsername});
     if(doc) {
       const obj = new Follow({
-        username : user.username,
-        following_username : followingUsername
+        follower : user.username,
+        following : followingUsername
       });
-      await obj.save();
-      updateMovieCount(user.username, [{ type: 'following_count', amount: 1}]);
-      updateMovieCount(followingUsername, [{type: 'followers_count', amount: 1}]);
+      await addFollower(obj);
       res.send('saved successfully');
     } else {
       res.status(401).send({error: 'following user does not exist'});
       return;
     }
   } catch(e) {
+    console.log(e);
     res.status(500).send('Internal Server Error');
   } 
 })
@@ -68,16 +66,13 @@ router.delete('/unfollow', RequireAuth, async(req, res) => {
   const user = await authenticateUser(req.cookies.jwt);
   const followingUsername = req.query.following_username ;
   try {
-    const doc = await Follow.findOneAndDelete({username : user.username, following_username: followingUsername});
-    if(doc) {
-      await Promies.all( [ updateMovieCount(user.username, [{ type: 'following_count', amount: -1}]),
-                           updateMovieCount(followingUsername, [{type: 'followers_count', amount: -1}]) ]);
-      res.send('unfollowed successfully');
-    } else {
-      res.status(401).send({error: 'could not find document'});
-    }
+    const obj = {
+      follower : user.username, 
+      following: followingUsername
+    };
+    await removeFollower(obj);
+    res.send('unfollowed successfully');
   } catch(e) {
-    console.log(e);
     res.status(500).send('Internal Server Error');
   }
 });
@@ -91,7 +86,6 @@ router.get('/movies_count', async(req,res)=>{
     res.send({movies_count: result});
     return;
   } catch(err) {
-    console.log(err);
     res.status(500).send('Internal Server Error');
   }
 })

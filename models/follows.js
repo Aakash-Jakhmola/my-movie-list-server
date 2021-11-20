@@ -1,21 +1,19 @@
 const mongoose = require('mongoose');
 
 const followSchema = new mongoose.Schema({
-  username: {
+  follower: {
     type: String,
     ref: 'User',
     required: true,
   },
-
-  following_username: {
+  following: {
     type: String,
     ref: 'User' ,
     required: true,
   }
-  
 });
 
-followSchema.index({username: 1, following_username: 1}, {unique: true})
+followSchema.index({follower: 1, following: 1}, {unique: true})
 
 const Follow = mongoose.model('Follow', followSchema);
 

@@ -71,12 +71,15 @@ router.get('/isAuthenticated',RequireAuth,(req,res)=>{
 
 router.get('/:username', async (req, res) => {
     try {
-        let result = await UserUtils.getUserDetailsFromDb(req.params.username) 
+        let result = await UserUtils.getUserDetailsFromDb(req.params.username) ;
+        console.log(result);
+        result = await UserUtils.makeUser(result.result);
+        console.log(result);
         if(result.error){
             res.status(401).send(result.error)
             return;
         }
-        res.send(result.result)
+        res.send(result)
     } catch(err) {
         res.send({error : err})
     }

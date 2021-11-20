@@ -1,7 +1,7 @@
 const { User } = require('../models/user');
 const {Follow} = require('../models/follows');
 const { Watch } = require('../models/watch');
-
+const mongoose = require('mongoose');
 
 
 const updateMovieCount = async(username, list) => {
@@ -40,6 +40,7 @@ const getFollowers = async(username) => {
   }
   return followers;
 };
+
 
 const getFollowing = async(username) => {
   let following = null;
@@ -118,6 +119,72 @@ const followingCount = async(username) => {
   return noOfFollowing;
 };
 
+
+const addMovieToUserList = async(user, query, watchObj, list) => {
+
+  const session = await mongoose.startSession();
+  
+  const transactionOptions = {
+    readPreference: 'primary',
+    readConcern: { level: 'local' },
+    writeConcern: { w: 'majority' }
+  };
+  
+  try {
+    const transactionResults = await session.withTransaction(async () => {
+      await Watch.updateMany(query, watchObj, {upsert: true, safe: true});
+      await User.findOneAndUpdate({username: user.username}, { $inc : list }, {session} );
+    }, transactionOptions);
+
+    if (transactionResults) {
+      console.log("The transaction was successfully created.");
+    } else {
+      console.log("The transaction was intentionally aborted.");
+      throw new Error('Could not add due to internal error');
+    }
+  } catch(e) {
+    throw new Error('Could not add due to internal error');
+  }
+};
+
+
+const removeMovieFromUserList = async(query) => {
+ 
+  const session = await mongoose.startSession();
+  
+  const transactionOptions = {
+    readPreference: 'primary',
+    readConcern: { level: 'local' },
+    writeConcern: { w: 'majority' }
+  };
+
+  let list = {};
+  if(query.watch_later) {
+    list['watch_later_count'] = -1;
+  } else {
+    list['movies_count'] = -1;
+  }
+  try {
+    const transactionResults = await session.withTransaction(async () => {
+      const doc = await Watch.findOneAndDelete(query);
+      if(doc) {
+        await User.findOneAndUpdate({username: user.username}, { $inc : list }, {session} );
+      }
+    }, transactionOptions);
+
+    if (transactionResults) {
+      console.log("The transaction was successfully created.");
+    } else {
+      console.log("The transaction was intentionally aborted.");
+      throw new Error('Could not add due to internal error');
+    }
+  } catch(e) {
+    throw new Error('Could not add due to internal error');
+  }
+};
+
+
+
 module.exports = {
   updateMovieCount,
   getFollowers,
@@ -125,4 +192,6 @@ module.exports = {
   moviesCount,
   followersCount,
   followingCount,
+  addMovieToUserList,
+  removeMovieFromUserList,
 }

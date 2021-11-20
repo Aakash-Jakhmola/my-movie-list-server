@@ -7,14 +7,18 @@ const { authenticateUser } = require('../../utils/auth');
 const  RequireAuth = require('../../middleware/authMiddleware');
 const validator = require('../../utils/validator');
 const { User} = require('./../../models/user');
-const {updateMovieCount} = require('./../../controllers/user-controller')
+const {updateMovieCount, addMovieToUserList} = require('./../../controllers/user-controller')
+const {con} = require('./../../app');
+const mongoose = require('mongoose');
 
 /* 
+  Returns movie list/ watch later list for the given usersname,
+
   query parameters
     - username       string       required
     - watch_later    boolean      optional    default(false)
     - page_number    number       optional    default(1)
-    - sort_key       number       optional    
+    - sort_key       number       optional    default(time)    time, score
 */
 router.get('/fetch_movie_list', async(req, res) => {
   const username = req.query.username;
@@ -77,7 +81,6 @@ router.get('/fetch_movie_list', async(req, res) => {
 })
 
 
-
 router.post('/add_movie', RequireAuth, async (req, res) => {
   
   const user = await authenticateUser(req.cookies.jwt) ;
@@ -115,16 +118,19 @@ router.post('/add_movie', RequireAuth, async (req, res) => {
     }
     obj.score = score;
     obj.review = review;
+  }  
+
+  let list = {};
+  if(watchLater) {
+    list['watch_later_count'] = 1;
+  } else {
+    list['movies_count'] = 1;
   }
-
-  console.log(obj);
-
+  
   try {
     const movie = await saveMovie(movieId);
-    if(movie) {
-      await obj.save();
-      // const list_type = watchLater ? 'watch_later_count' :'movies_count';
-      // await updateMovieCount(user.username, [{ type: list_type, amount: 1}]);
+    if(movie) { 
+      addMovieToUserList(user, obj, obj, list);
       res.send('updated successfully');
     } else {
       res.status(400).send('could not add movie');
@@ -169,12 +175,17 @@ router.patch('/update_movie', RequireAuth, async (req, res) => {
     return;
   }
   
+  let list = {};
+  if(req.body.watch_later === false) {
+    list['watch_later_count'] = -1;
+    list['movies_count'] = 1;
+  } else {
+    list['movies_count'] = 0;
+  }
+
   try {
     query = { movie_id: movieId, username: user.username };
-    await Watch.updateMany(query, obj, {upsert: true, safe: true});
-    // if(req.body.watch_later === false) {
-    //   await updateMovieCount(user.username, [{ type: 'watch_later_count', amount: -1}, {type: 'movies_count', amount: 1}]);
-    // }
+    addMovieToUserList(user, query, obj, list);
     res.send('updated successfully');
   } catch(e) {
     console.log(e);

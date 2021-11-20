@@ -7,7 +7,7 @@ const { authenticateUser } = require('../../utils/auth');
 const  RequireAuth = require('../../middleware/authMiddleware');
 const validator = require('../../utils/validator');
 const { User} = require('./../../models/user');
-const {updateMovieCount, addMovieToUserList} = require('./../../controllers/user-controller')
+const {updateMovieCount, addMovieToUserList, removeMovieFromUserList} = require('./../../controllers/user-controller')
 const {con} = require('./../../app');
 const mongoose = require('mongoose');
 
@@ -130,8 +130,8 @@ router.post('/add_movie', RequireAuth, async (req, res) => {
   try {
     const movie = await saveMovie(movieId);
     if(movie) { 
-      addMovieToUserList(user, obj, obj, list);
-      res.send('updated successfully');
+      await addMovieToUserList(user, obj, obj, list);
+      res.send('added successfully');
     } else {
       res.status(400).send('could not add movie');
     }
@@ -185,7 +185,7 @@ router.patch('/update_movie', RequireAuth, async (req, res) => {
 
   try {
     query = { movie_id: movieId, username: user.username };
-    addMovieToUserList(user, query, obj, list);
+    await addMovieToUserList(user, query, obj, list);
     res.send('updated successfully');
   } catch(e) {
     console.log(e);
@@ -204,16 +204,11 @@ router.delete('/delete_movie', RequireAuth, async(req,res)=> {
       movie_id: movieId,
       watch_later: watchLater
     };
-    const doc = await Watch.findOneAndDelete(query);
-    // console.log(doc);
-    // const list_type = watchLater ? 'watch_later_count' :'movies_count';
-    if(doc) {
-      // await updateMovieCount(user.username, [{ type: list_type, amount: -1}]);
-      res.send('deleted successfully');
-    } else {
-      res.status(400).send({error: 'document not found'});
-    }
+    await removeMovieFromUserList(query);
+    res.send('deleted successfully');
+    
   } catch(e) {
+    console.log(e);
     res.status(500).send('deletion failed');
   }
 }) 

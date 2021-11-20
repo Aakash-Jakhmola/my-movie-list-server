@@ -145,6 +145,7 @@ const addMovieToUserList = async(user, query, watchObj, list) => {
   } catch(e) {
     throw new Error('Could not add due to internal error');
   }
+  session.endSession();
 };
 
 
@@ -166,21 +167,32 @@ const removeMovieFromUserList = async(query) => {
   }
   try {
     const transactionResults = await session.withTransaction(async () => {
-      const doc = await Watch.findOneAndDelete(query);
-      if(doc) {
-        await User.findOneAndUpdate({username: user.username}, { $inc : list }, {session} );
+      const doc = await Watch.findOneAndDelete(query, {session});
+      console.log(doc);
+      if(!doc) {
+        console.log('here');
+        throw new Error('not found');
       }
+      const res = await User.findOneAndUpdate({username: query.username}, { $inc : list }, {session} );
+      console.log('res',res);
+      if(!res) {
+        console.log('here2');
+        throw new Error('not found');
+      }
+      console.log(res);
     }, transactionOptions);
 
     if (transactionResults) {
       console.log("The transaction was successfully created.");
     } else {
       console.log("The transaction was intentionally aborted.");
-      throw new Error('Could not add due to internal error');
+      throw new Error('Could not remove due to internal error');
     }
   } catch(e) {
-    throw new Error('Could not add due to internal error');
+    console.log(e);
+    throw new Error('Could not remove due to internal error');
   }
+  session.endSession();
 };
 
 

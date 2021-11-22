@@ -38,12 +38,15 @@ const getFollowers = async(username) => {
   } catch(e) {
     console.log(e);
   }
+  
+
   return followers;
 };
 
 
 const getFollowing = async(username) => {
   let following = null;
+  console.log(username);
   try {
     following = await Follow.aggregate([
       { $match : { follower : username}},
@@ -54,7 +57,7 @@ const getFollowing = async(username) => {
       }},
       { $lookup :  {
                     from : 'users',
-                    localField: 'follower',
+                    localField: 'following',
                     foreignField: 'username',
                     as: 'following_details'
                   }

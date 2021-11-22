@@ -5,6 +5,24 @@ const { authenticateUser } = require('./../../utils/auth');
 const { Follow } = require('./../../models/follows')
 const { getFollowers, getFollowing, moviesCount, addFollower, removeFollower } = require('../../controllers/user-controller');
 
+
+router.get('/search', async(req,res) => {
+  try {
+    const docs = await User.find( 
+      { $or: [ 
+              { username : { $regex: req.query.name, $options: "i" } } , 
+              { firstname : { $regex: req.query.name, $options: "i" } }, 
+              { lastname : { $regex: req.query.name, $options: "i" } } 
+            ] 
+      }
+    );
+    res.send(docs);
+  } catch(e) {
+    res.status(500).send('Internal Server Error');
+  }
+});
+
+
 router.get('/followers', async(req, res) => {
   const followers = await getFollowers(req.query.username);
   console.log(followers);

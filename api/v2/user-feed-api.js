@@ -10,7 +10,7 @@ router.get('/feed', RequireAuth, async(req, res) => {
   const user = await authenticateUser(req.cookies.jwt) ;
   let pageNumber = 1;
   if(req.query.page_number) {
-    pageNumber = parseInt(req.query.pageNumber) ;
+    pageNumber = parseInt(req.query.page_number) ;
   }
   
   try {

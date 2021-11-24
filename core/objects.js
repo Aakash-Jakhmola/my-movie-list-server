@@ -1,4 +1,5 @@
 const constants = require('../core/constants')
+
 class Movie {
     //movie data is json object of movie detail recieved from tmdb api call
     constructor(movieData) {

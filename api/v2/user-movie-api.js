@@ -7,6 +7,10 @@ const { authenticateUser } = require('../../utils/auth');
 const  RequireAuth = require('../../middleware/authMiddleware');
 const validator = require('../../utils/validator');
 const { addMovieToUserList, removeMovieFromUserList} = require('./../../controllers/user-controller')
+const axios = require('axios');
+const {Movie} = require('./../../core/objects');
+const { GenreMap } = require('../../core/constants');
+
 
 /* 
   Returns movie list/ watch later list for the given usersname,
@@ -211,6 +215,21 @@ router.delete('/delete_movie', RequireAuth, async(req,res)=> {
     console.log(e);
     res.status(500).send('deletion failed');
   }
-}) 
+});
+
+router.get('/trending', async(req, res) => {
+  try {
+    const trendingData = await axios.get('https://api.themoviedb.org/3/trending/movie/day?api_key=' + process.env.API_KEY);
+    // console.log(trendingData.data.results);
+    const trendingMovies = trendingData.data.results.map((movieData) => new Movie(movieData));
+    let hul = trendingData.data.results[0].genre_ids.map((g_id) => GenreMap.get(g_id))
+    console.log(hul);
+    res.send(trendingMovies);
+  } catch(e) {  
+    console.log(e);
+    res.status(500).send('unsuccessfuyl');
+  }
+
+});
 
 module.exports = router;

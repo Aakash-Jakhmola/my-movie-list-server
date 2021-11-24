@@ -4,5 +4,5 @@ const GenreMap = new Map([[28,"Action"],[12,"Adventure"],[16,"Animation"],[35,"C
 
                 
 module.exports = {
-  GenreMap : GenreMap
+  GenreMap 
 }

@@ -3,7 +3,7 @@ const express = require('express') ;
 const mongoose = require('mongoose') ;
 const mongodb = require('mongodb');
 var corsOptions = {
-    origin:"http://localhost:3000",
+    origin:"https://priceless-hamilton-eafe97.netlify.app",
     credentials: true };
 const cors = require('cors') ;
 const cookieParser = require('cookie-parser')

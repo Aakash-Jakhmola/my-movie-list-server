@@ -30,7 +30,7 @@ router.post("/login", async (req, res) => {
         } else {
         
             const token = AuthController.CreateToken(result.result)
-            // res.cookie('jwt',token,{maxAge:7*24*60*60*1000})
+             res.cookie('jwt',token,{maxAge:7*24*60*60*1000, secure:true,sameSite:'none',path:'/'})
             //res.setHeader('Set-Cookie',[`username=${result.result.username}`,`user_id=${result.result._id}`]);`
             let data = await UserUtils.makeUser(result.result)
             res.send({user_data: data, jwt: token});
@@ -40,12 +40,10 @@ router.post("/login", async (req, res) => {
     }
 });
 
-router.post("/logout",(req,res)=>{
+router.post("/logout", RequireAuth,(req,res)=>{
     //console.log('logging out')
     const token = 'somefaketoken'
-    res.cookie('jwt',token,{httpOnly:true,maxAge:0})
-    res.cookie('username',token,{httpOnly:true,maxAge:0})
-    res.cookie('user_id',token,{httpOnly:true,maxAge:0})
+    res.cookie('jwt',token,{maxAge:0, secure:true,sameSite:'none',path:'/'})
     return res.status(200).send({msg:'logged out successfully'})
 })
 

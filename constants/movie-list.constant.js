@@ -1,7 +1,5 @@
-function define(name, value) {
-  Object.defineProperty(exports, name, {
-      value: value,
-      enumerable: true
-  });
+const constants = {
+  PAGE_SIZE: 18,
 }
-define('PAGE_SIZE', 18)
+
+module.exports = constants;

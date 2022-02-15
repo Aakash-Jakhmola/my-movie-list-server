@@ -1,9 +1,9 @@
 const mongoose = require('mongoose');
 const https = require('https');
-const {Movie, Post} = require('./objects');
+const {Movie} = require('./objects');
 
 const urlfunc = require('./urlfunctions');
-const { User } = require('../models/user');
+const { User } = require('../models/User.model');
 
 //id is string which is conveted to valid mongodb.ObjecID
 function GenerateTimestampFromID(id) {
@@ -82,23 +82,9 @@ async function RenderPost(postModel) {
     });
 }
 
-//currently not funcitonal
-function AppendPost(userId,postId) {
-
-  User.findByIdAndUpdate(userId,
-    {$push: {posts: {postid: postId}}},
-    {safe: true, upsert: true})
-    .then((result) =>{
-       //console.log('result: ',result)
-    })
-    .catch(err=>{
-        console.log(err);
-    });
-}
 
 module.exports = {
     RenderMovie : RenderMovie,
     RenderSearchedMovies : RenderSearchedMovies,
     RenderPost : RenderPost,
-    AppendPost : AppendPost
 }

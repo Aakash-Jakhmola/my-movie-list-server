@@ -12,7 +12,6 @@ class Movie {
         this.vote_average = movieData.vote_average
         this.adult = movieData.adult
         this.language = movieData.original_language
-        /*requires reconsideration*/
         this.poster_url = movieData.poster_path?"https://image.tmdb.org/t/p/w400"+movieData.poster_path:''
         if(movieData.genre_ids) {
             movieData.genre_ids.forEach((genre_id)=>{
@@ -22,21 +21,8 @@ class Movie {
     }
 }
 
-//Do not confuse with Post model (mongoose)
-//this is another class which generates final post by retrieving data from Post.movieId
-class Post {
-    constructor(time,movie,postData) {
-        this.time = time,
-        this.movie = movie,
-        this.userid = postData.userid,
-        this.movie_rating = postData.movie_rating,
-        this.comment = postData.comment?postData.comment:""
-    }
-}
-
 module.exports = {
     Movie: Movie,
-    Post : Post
 }
 
 

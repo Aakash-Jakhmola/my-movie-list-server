@@ -1,5 +1,5 @@
 const mongoose = require('mongoose')
-const { User } = require('../models/user')
+const { User } = require('../models/User.model')
 
 async function AppendFollowersList(userId,friendId) {
 

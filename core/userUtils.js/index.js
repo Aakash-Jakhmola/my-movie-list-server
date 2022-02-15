@@ -1,4 +1,4 @@
-const { moviesCount, followersCount, followingCount } = require('../../controllers/user-controller');
+const { moviesCount, followersCount, followingCount } = require('../../controllers/user.controller');
 const CheckCredentialsAndGetUser = require('./checkCredentials')
 const getUserDetailsFromDb = require('./getUserDetails')
 const SaveUser = require('./saveUser')

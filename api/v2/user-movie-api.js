@@ -1,16 +1,16 @@
 const express = require('express');
 const router = express.Router();
-const { Watch } = require('../../models/watch');
-const { saveMovie } = require('./../../controllers/movie-controller');
+const { Watch } = require('../../models/Watch.model');
+const { saveMovie } = require('../../controllers/movie.controller');
 const constants = require('../../constants/movie-list.constant');
 const { authenticateUser } = require('../../utils/auth');
 const  RequireAuth = require('../../middleware/authMiddleware');
 const validator = require('../../utils/validator');
-const { addMovieToUserList, removeMovieFromUserList} = require('./../../controllers/user-controller')
+const { addMovieToUserList, removeMovieFromUserList} = require('../../controllers/user.controller')
 const axios = require('axios');
 const {Movie} = require('./../../core/objects');
 const { GenreMap } = require('../../core/constants');
-
+const URLS = require('./../../url');
 
 /* 
   Returns movie list/ watch later list for the given usersname,
@@ -21,213 +21,17 @@ const { GenreMap } = require('../../core/constants');
     - page_number    number       optional    default(1)
     - sort_key       number       optional    default(time)    time, score
 */
-router.get('/fetch_movie_list', async(req, res) => {
-  const username = req.query.username;
-  const validateMsg = validator.validateUsername(username)
-  if(validateMsg) {
-    res.status(400).send(validateMsg);
-    return;
-  }
 
-  let watchLater = false ;
-
-  if(req.query.watch_later && req.query.watch_later === 'true') {
-    watchLater = true;
-  }
-
-  const query = {
-    username,
-    watch_later: watchLater,
-  }
-
-  let pageNumber = 1;
-  if(req.query.page_number) {
-    pageNumber = parseInt(req.query.page_number) ;
-  }
-
-  var sortKey = {};
-  if(req.query.sort_key && req.query.sort_key === 'score' ) {
-    sortKey['score'] = -1;
-  } else  {
-    sortKey['_id'] = -1;
-  }
-  
-  try {
-    const result = await Watch.aggregate([
-        { $match: query },
-        { $sort : sortKey },
-        { $skip : (pageNumber- 1) * constants.PAGE_SIZE },
-        { $limit : constants.PAGE_SIZE },
-        { $project: { 
-                      "_id": 0,
-                      "user_id": 0
-                    }
-        },
-        { $lookup: {
-                      from : 'movies',
-                      localField: 'movie_id',
-                      foreignField: 'movie_id',
-                      as: 'movie_details'
-                    }
-        },
-        {
-          $unwind: '$movie_details'
-        },
-      ]);
-    res.send(result);
-  } catch(err) {
-    console.log(err);
-    res.status(400).send('fetch failed');
-  }
-})
-
-
-router.post('/add_movie', RequireAuth, async (req, res) => {
-  
-  const user = await authenticateUser(req.cookies.jwt) ;
-  const movieId = req.body.movie_id;
-  const score = req.body.score;
-  const review = req.body.review;
-
-  let validateMsg = validator.validateMovieId(movieId)
-  if(validateMsg) {
-    res.status(400).send(validateMsg);
-    return;
-  }
-  
-  let watchLater = false ;
-  if(req.body.watch_later && req.body.watch_later === true) {
-    watchLater = true;
-  }
-
-  const obj = new Watch({
-    username: user.username,
-    movie_id: movieId,
-    watch_later: watchLater,
-  })
-
-  if(!watchLater) {
-    validateMsg = validator.validateScore(score);
-    if(validateMsg) {
-      res.status(400).send(validateMsg);
-      return;
-    } 
-    validateMsg = validator.validateReview(review);
-    if(validateMsg) {
-      res.status(400).send(validateMsg);
-      return;
-    }
-    obj.score = score;
-    obj.review = review;
-  }  
-
-  let list = {};
-  if(watchLater) {
-    list['watch_later_count'] = 1;
-  } else {
-    list['movies_count'] = 1;
-  }
-  
-  try {
-    const movie = await saveMovie(movieId);
-    if(movie) { 
-      await addMovieToUserList(user, obj, obj, list);
-      res.send('added successfully');
-    } else {
-      res.status(400).send('could not add movie');
-    }
-  } catch(err) {
-    res.status(400).send('could not add movie');
-  }
-  res.end(); 
-})
-
-
-
-router.patch('/update_movie', RequireAuth, async (req, res) => {
-  
-  const user = await authenticateUser(req.cookies.jwt) ;
-  const movieId = req.body.movie_id;
-  let validateMsg = validator.validateMovieId(movieId);
-  if(validateMsg) {
-    res.status(400).send(validateMsg);
-    return;
-  }
-  const obj = {};
-  if(req.body.new_score)
-    obj.score = req.body.new_score;
-  if(req.body.new_review) 
-    obj.review = req.body.new_review;
-  if(req.body.watch_later === true) {
-    obj.watch_later = true;
-  }
-
-  if(req.body.watch_later === false) {
-    obj.watch_later = false;
-    validateMsg = validator.validateScore(obj.score) ;
-    if(validateMsg){
-      res.status(400).send(validateMsg);
-      return;
-    }
-    validateMsg = validator.validateReview(obj.review);
-    if(validateMsg) {
-      res.status(400).send(validateMsg);
-      return;
-    }
-  } else if(req.body.watch_later === true){
-    res.status(400).send({error: 'not allowed to update'});
-    return;
-  }
-  
-  let list = {};
-  if(req.body.watch_later === false) {
-    list['watch_later_count'] = -1;
-    list['movies_count'] = 1;
-  } else {
-    list['movies_count'] = 0;
-  }
-
-  try {
-    query = { movie_id: movieId, username: user.username };
-    await addMovieToUserList(user, query, obj, list);
-    res.send('updated successfully');
-  } catch(e) {
-    console.log(e);
-    res.status(500).end();
-  }
-}) ; 
-
-router.delete('/delete_movie', RequireAuth, async(req,res)=> {
-  const user = await authenticateUser(req.cookies.jwt) ;
-  const movieId = req.query.movie_id;
-  const watchLater = req.query.watch_later === 'true';
-
-  try {
-    const query = {
-      username: user.username,
-      movie_id: movieId,
-      watch_later: watchLater
-    };
-    await removeMovieFromUserList(query);
-    res.send('deleted successfully');
-    
-  } catch(e) {
-    console.log(e);
-    res.status(500).send('deletion failed');
-  }
-});
 
 router.get('/trending', async(req, res) => {
   try {
-    const trendingData = await axios.get('https://api.themoviedb.org/3/trending/movie/day?api_key=' + process.env.API_KEY);
-    // console.log(trendingData.data.results);
+    const trendingData = await axios.get(URLS.TRENDING_MOVIE + '?api_key=' + process.env.API_KEY);
+    console.log(trendingData.data.results);
     const trendingMovies = trendingData.data.results.map((movieData) => new Movie(movieData));
-    let hul = trendingData.data.results[0].genre_ids.map((g_id) => GenreMap.get(g_id))
-    console.log(hul);
     res.send(trendingMovies);
   } catch(e) {  
     console.log(e);
-    res.status(500).send('unsuccessfuyl');
+    res.status(500).send('unsuccessfuLl');
   }
 
 });

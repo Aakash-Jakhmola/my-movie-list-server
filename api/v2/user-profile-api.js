@@ -1,10 +1,10 @@
 const router = require('express').Router();
-const { User } = require('./../../models/user');
+const { User } = require('../../models/User.model');
 const mongoose = require('mongoose');
 const RequireAuth = require('./../../middleware/authMiddleware');
 const { authenticateUser } = require('./../../utils/auth');
-const { Follow } = require('./../../models/follows')
-const { getFollowers, getFollowing, moviesCount, addFollower, removeFollower } = require('../../controllers/user-controller');
+const { Follow } = require('../../models/Follow.model')
+const { getFollowers, getFollowing, moviesCount, addFollower, removeFollower } = require('../../controllers/user.controller');
 
 
 router.get('/search', RequireAuth, async (req, res) => {
@@ -75,57 +75,6 @@ router.get('/following', async (req, res) => {
 })
 
 
-router.post('/follow', RequireAuth, async (req, res) => {
-  const user = await authenticateUser(req.cookies.jwt);
-
-  console.log(user);
-  const followingUsername = req.body.following_username;
-
-  if (followingUsername === null || followingUsername === undefined || followingUsername === '') {
-    res.status(401).send({ error: 'following_username cannot be empty' });
-    return;
-  } else if (typeof (followingUsername) !== 'string') {
-    res.status(401).send({ error: 'following_username must be a string' });
-    return;
-  } else if (followingUsername === user.username) {
-    res.status(401).send({ error: 'cannot follow self' });
-    return;
-  }
-
-  try {
-    const doc = await User.findOne({ username: followingUsername });
-    if (doc) {
-      const obj = new Follow({
-        follower: user.username,
-        following: followingUsername
-      });
-      await addFollower(obj);
-      res.send('saved successfully');
-    } else {
-      res.status(401).send({ error: 'following user does not exist' });
-      return;
-    }
-  } catch (e) {
-    console.log(e);
-    res.status(500).send('Internal Server Error');
-  }
-})
-
-router.delete('/unfollow', RequireAuth, async (req, res) => {
-  const user = await authenticateUser(req.cookies.jwt);
-  console.log(user);
-  const followingUsername = req.query.following_username;
-  try {
-    const obj = {
-      follower: user.username,
-      following: followingUsername
-    };
-    await removeFollower(obj);
-    res.send('unfollowed successfully');
-  } catch (e) {
-    res.status(500).send('Internal Server Error');
-  }
-});
 
 
 router.get('/movies_count', async (req, res) => {

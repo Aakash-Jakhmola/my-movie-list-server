@@ -1,4 +1,4 @@
-const { User } = require('../../models/user')
+const { User } = require('../../models/User.model')
 
 const deleteMovieFromMovieList = async (username, movieid) => {
 

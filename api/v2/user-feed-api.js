@@ -1,9 +1,9 @@
 const router = require('express').Router();
 const RequireAuth = require('./../../middleware/authMiddleware');
 const { authenticateUser } = require('./../../utils/auth')
-const { Watch } = require('../../models/watch');
+const { Watch } = require('../../models/Watch.model');
 const constants = require('./../../constants/movie-list.constant');
-const { getFollowing } = require('./../../controllers/user-controller');
+const { getFollowing } = require('../../controllers/user.controller');
 
 
 router.get('/feed', RequireAuth, async(req, res) => {

@@ -30,7 +30,7 @@ async function login({ username, password }) {
     });
   }
 
-  return { token: await getAuthToken(user) };
+  return { token: await getAuthToken(user), user };
 }
 
 module.exports = login;

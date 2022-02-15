@@ -23,31 +23,31 @@ _user.schema = new mongoose.Schema({
 
     image: String,
 
-    movies_count: {
+    watchedMoviesCount: {
       type: Number,
       default: 0,
       required: true
     },
 
-    watch_later_count: {
+    watchLaterMoviesCount: {
       type: Number,
       default: 0,
       required: true
     },
     
-    followers_count : {
+    followersCount : {
       type: Number,
       default: 0,
       required: true
     },
 
-    following_count : {
+    followingCount : {
       type: Number,
       default: 0,
       required: true
     },
     
-}) ;
+});
 
 
 _user.model = mongoose.model('User', _user.schema) ;

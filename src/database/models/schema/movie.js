@@ -8,7 +8,7 @@ _movie.schema = new mongoose.Schema({
     required: true,
   },
 
-  movie_id: {
+  movieId: {
     type: Number,
     unique: true,
     required: true,
@@ -28,7 +28,7 @@ _movie.schema = new mongoose.Schema({
   
   language: String,
   
-  poster_url: String,
+  posterUrl : String,
   
 });
 

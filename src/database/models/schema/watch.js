@@ -8,7 +8,7 @@ _watch.schema = new mongoose.Schema({
     ref: 'User'
   },
 
-  movie_id: {
+  movieId: {
     type: Number,
     ref: 'Movie'
   },
@@ -17,14 +17,14 @@ _watch.schema = new mongoose.Schema({
   
   review: String,
   
-  watch_later: {
+  watchLater: {
     type: Boolean,
     required: true,
   }
   
 });
 
-_watch.schema.index({username: 1, movie_id: 1}, {unique: true, required: true})
+_watch.schema.index({username: 1, movieId: 1}, {unique: true, required: true})
 
 _watch.model = mongoose.model('Watch', _watch.schema);
 

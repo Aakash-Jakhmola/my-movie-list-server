@@ -9,7 +9,7 @@ async function hashPassword(password) {
   return hashedPassword;
 }
 
-async function create({username, password, firstname, lastname}) {
+async function createAccount({username, password, firstname, lastname}) {
   const foundUser = User.findOne({username});
   if(foundUser) {
     return ErrorHandler.throwError({
@@ -29,4 +29,4 @@ async function create({username, password, firstname, lastname}) {
 
 }
 
-module.exports = create;
+module.exports = createAccount;

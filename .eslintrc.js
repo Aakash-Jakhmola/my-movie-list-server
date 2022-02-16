@@ -1,5 +1,5 @@
 module.exports = {
-  plugins: ['node', 'security'],
+  plugins: ['node', 'security', 'prettier'],
   extends: [
     'eslint:recommended',
     'plugin:node/recommended',
@@ -14,7 +14,7 @@ module.exports = {
         ignores: [],
       },
     ],
-    'node/no-extraneous-require': 'off',
+    'node/no-extraneous-require': 'on',
     'node/exports-style': ['error', 'module.exports'],
     'prettier/prettier': [
       'error',
@@ -23,6 +23,7 @@ module.exports = {
         parser: 'flow',
         trailingComma: 'all',
         endOfLine: auto,
+        printWidth: 80,
       },
     ],
     'no-unused-vars': [

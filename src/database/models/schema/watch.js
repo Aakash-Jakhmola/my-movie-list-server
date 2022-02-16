@@ -17,7 +17,7 @@ _watch.schema = new mongoose.Schema({
   
   review: String,
   
-  watchLater: {
+  hasWatched: {
     type: Boolean,
     required: true,
   }

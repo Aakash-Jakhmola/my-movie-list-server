@@ -10,6 +10,7 @@ async function verifyToken(req, res, next) {
       req.userId = decoded.userId;
       req.isAuthenticated = true;
       req.username = decoded.username;
+      next();
     } catch( err )  {
       console.log(err);
       return res.status(401).json({

@@ -9,7 +9,6 @@ const createAccountValidation = {
     username: Joi.string().required(),
     password: Joi.string().required()
   })
-
 }
 
 async function createAccount(req, res) {

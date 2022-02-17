@@ -5,11 +5,12 @@ const jwt = require('jsonwebtoken');
 const config = require('./../../../config');
 
 function getAuthToken(user) {
+  const maxAge =  7*24*60*60;
   return jwt.sign(
     { userId: user._id, username: user.username },
     config.JWT_SECRET,
     {
-      expiresIn: config.maxAge,
+      expiresIn: maxAge,
     }
   );
 };

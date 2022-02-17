@@ -19,11 +19,11 @@ module.exports = {
     'prettier/prettier': [
       'error',
       {
-        singleQuote: true,
-        parser: 'flow',
-        trailingComma: 'all',
-        endOfLine: auto,
-        printWidth: 80,
+        'singleQuote': true,
+        'parser': 'flow',
+        'trailingComma': 'all',
+        'endOfLine': auto,
+        'printWidth': 80,
       },
     ],
     'no-unused-vars': [

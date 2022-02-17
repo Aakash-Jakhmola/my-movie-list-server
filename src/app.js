@@ -3,8 +3,9 @@ const cors = require('cors');
 const cookieParser = require('cookie-parser');
 
 const router = require('./interface');
-const errorHandler = require('./utils/errorHandler');
+const { errorHandler } = require('./interface/middlewares');
 const config = require('../config');
+require('./database');
 // const auth = require('./utils/auth');
 
 // Express App
@@ -16,7 +17,6 @@ app.use(cookieParser());
 
 // app.use(auth.verifyToken);
 app.use('/', router);
-
-// app.use(errorHandler);
+app.use(errorHandler);
 
 module.exports = app;

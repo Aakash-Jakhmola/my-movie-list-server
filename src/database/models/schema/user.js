@@ -49,6 +49,23 @@ _user.schema = new mongoose.Schema({
     
 });
 
+_user.schema.methods.safeObject = function () {
+  const safeFields = [
+    'firstname',
+    'lastname',
+    'username',
+    'watchedMoviesCount',
+    'watchLaterMoviesCount',
+    'followingCount',
+    'followersCount',
+  ];
+  const newSafeObject = {};
+  safeFields.forEach((elem) => {
+    // eslint-disable-next-line security/detect-object-injection
+    newSafeObject[elem] = this[elem];
+  });
+  return newSafeObject;
+};
 
 _user.model = mongoose.model('User', _user.schema) ;
 

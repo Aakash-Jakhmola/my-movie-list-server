@@ -23,7 +23,8 @@ const URLS = require('./../../url');
 */
 
 
-router.get('/trending', async(req, res) => {
+
+router.get("/trending", async(req, res) => {
   try {
     const trendingData = await axios.get(URLS.TRENDING_MOVIE + '?api_key=' + process.env.API_KEY);
     console.log(trendingData.data.results);

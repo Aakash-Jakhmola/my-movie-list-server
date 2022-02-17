@@ -1,4 +1,16 @@
 const { User } = require("../../domain");
+const { validator } = require('./../middlewares');
+const { Joi, validate } = validator;
+
+const createAccountValidation = {
+  body: Joi.object({
+    firstname: Joi.string().required(),
+    lastname: Joi.string(),
+    username: Joi.string().required(),
+    password: Joi.string().required()
+  })
+
+}
 
 async function createAccount(req, res) {
 
@@ -14,4 +26,4 @@ async function createAccount(req, res) {
 
 }
 
-module.exports = createAccount;
+module.exports = [validate(createAccountValidation), createAccount];

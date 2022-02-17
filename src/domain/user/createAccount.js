@@ -10,7 +10,8 @@ async function hashPassword(password) {
 }
 
 async function createAccount({username, password, firstname, lastname}) {
-  const foundUser = User.findOne({username});
+  const foundUser = await User.findOne({username});
+  console.log(foundUser);
   if(foundUser) {
     return ErrorHandler.throwError({
       code: 403,
@@ -25,7 +26,7 @@ async function createAccount({username, password, firstname, lastname}) {
     lastname,
   }).save();
 
-  return createdUser;
+  return createdUser.safeObject();
 
 }
 

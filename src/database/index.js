@@ -5,7 +5,13 @@ const config = require('../../config');
 const dbURI = config.DB_URI || 'mongodb://localhost/boilerplate_graphql';
 
 // Create the database connection
-mongoose.connect(dbURI,{useNewUrlParser: true } , (err) => {
+mongoose.connect(
+  dbURI,
+  {
+    useNewUrlParser: true,
+    useCreateIndex: true, 
+    useUnifiedTopology: true 
+  } , (err) => {
   if (err) {
     console.log('DB Error: ', err);
     throw err;

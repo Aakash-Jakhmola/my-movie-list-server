@@ -1,5 +1,3 @@
-require('../');
-
 const _models = {
   User: require('./schema/user').model,
   Movie: require('./schema/movie').model,

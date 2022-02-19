@@ -11,4 +11,4 @@ async function getFollowing(req, res) {
 
 }
 
-module.exports = getFollowing;
+module.exports = [getFollowing];

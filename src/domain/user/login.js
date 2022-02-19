@@ -31,7 +31,10 @@ async function login({ username, password }) {
     });
   }
 
-  return { token: await getAuthToken(user), user };
+  return { 
+    token: await getAuthToken(user), 
+    user: user.safeObject(),
+  };
 }
 
 module.exports = login;

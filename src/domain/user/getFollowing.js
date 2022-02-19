@@ -1,5 +1,7 @@
 const { Follow } = require("../../database/models");
 
+
+
 async function getFollowing({username, viewer}) {
 
   const following = await Follow.aggregate([
@@ -13,10 +15,10 @@ async function getFollowing({username, viewer}) {
                   from : 'users',
                   localField: 'following',
                   foreignField: 'username',
-                  as: 'following_details'
+                  as: 'following'
                 }
     },
-    { $unwind : '$following_details'}
+    { $unwind : '$following'}
   ]);
 
   return following;

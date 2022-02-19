@@ -6,12 +6,12 @@ const _follow = {};
 _follow.schema = new Schema(
   {
     follower: {
-      type: Schema.Types.ObjectId,
+      type: String,
       ref: 'User',
       required: true,
     },
     following: {
-      type: Schema.Types.ObjectId,
+      type: String,
       ref: 'User',
       required: true,
     },

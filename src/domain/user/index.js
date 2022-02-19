@@ -6,4 +6,6 @@ module.exports = {
   createAccount: require('./createAccount'),
   getAccount: require('./getAccount'),
   getFeed: require('./getFeed'),
+  followUser: require('./followUser'),
+  unfollowUser: require('./unfollowUser'),
 };

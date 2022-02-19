@@ -1,7 +1,11 @@
-const { User } = require("../../database/models");
+const { User, Follow } = require("../../database/models");
 const ErrorHandler = require("../../utils/errorHandler");
 
+
 async function getAccount({ username, search, viewer }) {
+
+  let users = [];
+
   if(username) {
     const foundUser = await User.findOne({username});
     if(!foundUser) {
@@ -10,42 +14,64 @@ async function getAccount({ username, search, viewer }) {
         message: `could not find user with username: ${username}`,
       })
     }
-    return foundUser;
-  } 
+    users = [ foundUser ];
+  } else {
+    users = await User.find({
+      $or: [
+        { username: { $regex: search, $options: "i" } },
+        { firstname: { $regex: search, $options: "i" } },
+        { lastname: { $regex: search, $options: "i" } }
+      ]
+    });
+  }
+  
+  console.log({viewer});
+  const userNameToIdxMap = {};
+  const usernames = [];
 
-  const users = await User.find({
-    $or: [
-      { username: { $regex: search, $options: "i" } },
-      { firstname: { $regex: search, $options: "i" } },
-      { lastname: { $regex: search, $options: "i" } }
-    ]
+  users = users.map( (user, index)  => {
+    userNameToIdxMap[user.username] = index;
+    usernames.push(user.username);
+    return user.safeObject();
   });
-  let result = [];
-  let usernameToFollowMap = {};
-  let usernames = users.map((u) => u.username);
 
-  const followingData = await Follow.aggregate([
+  
+
+  // get the users which the viewer is following or is being followed
+  const viewerFollowing = await Follow.aggregate([
     {
       $match: {
-        $and: [
-          { follower: viewer },
-          { following: { $in: usernames } }
+        $or: [
+          {
+            $and: [
+              { follower: viewer },
+              { following: { $in: usernames } }
+            ]
+          },
+          {
+            $and: [
+              { follower: { $in: usernames }},
+              { following : viewer},
+            ]
+          }
         ]
-      }
-    },
+      }, 
+    }, 
   ]);
-  followingData.map((r) => {
-    usernameToFollowMap[r.following] = true;
+
+  viewerFollowing.map((f) => {
+    const followerIdx = userNameToIdxMap[f.follower];
+    const followingIdx = userNameToIdxMap[f.following];
+   
+    if(f.follower === viewer) {
+      users[followingIdx].isFollowing = true;
+    } 
+    if(f.following === viewer) {
+      users[followerIdx].isFollowed = true;
+    }
   })
 
-  docs.map((user) => {
-    result.push({
-      user_details: user,
-      is_following: usernameToFollowMap[user.username] != null
-    });
-  })
-  
-  return result;
+  return users;
   
 }
 

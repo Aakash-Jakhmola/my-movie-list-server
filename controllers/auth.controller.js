@@ -28,13 +28,13 @@ const register = async(req, res) => {
 
 
 const login = async(req, res) => {
-  console.log(req.cookies);
+  console.logokies);
   try {
     const user = await User.findOne({username: req.body.username});
     if(!user) {
       res.status(400).send({success: false, message: 'No user exists with such username'});
       return;
-    }
+    }(req.co
     if(await bcrypt.compare(req.body.password, user.password)) {
       res.cookie('jwt', createToken(user), {maxAge:7*24*60*60*1000, path:'/'});
       res.status(200).send({success: true, data: userObject(user), message: 'login successfully'});

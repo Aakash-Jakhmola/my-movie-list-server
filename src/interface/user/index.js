@@ -8,6 +8,7 @@ const {
 const createAccount = require('./createAccount');
 const followUser = require('./followUser');
 const getAccount = require('./getAccount');
+const getFollowers = require('./getFollowers');
 const getFollowing = require('./getFollowing');
 const login = require('./login');
 const unfollowUser = require('./unfollowUser');
@@ -16,7 +17,7 @@ router.post('/create', asyncHandlerArray(createAccount));
 router.post('/login', asyncHandlerArray(login));
 router.get('/', asyncHandlerArray(getAccount));
 router.get('/:username/following', asyncHandlerArray(getFollowing));
-// router.get('/:username/followers', asyncHandlerArray());
+router.get('/:username/followers', asyncHandlerArray(getFollowers));
 router.post('/follow', asyncHandlerArray(followUser));
 router.delete('/unfollow', asyncHandlerArray(unfollowUser));
 

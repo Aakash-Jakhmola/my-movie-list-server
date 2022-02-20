@@ -6,6 +6,7 @@ const {
 } = require('./../../utils/asyncHandler');
 
 const addMovie = require('./addMovie');
+const editMovie = require('./editMovie');
 const getMoviesByName = require('./getMoviesByName');
 const getTrending = require('./getTrending');
 const removeMovie = require('./removeMovie');
@@ -13,6 +14,7 @@ const removeMovie = require('./removeMovie');
 router.get('/', asyncHandlerArray(getMoviesByName));
 router.get('/trending', asyncHandlerArray(getTrending));
 router.post('/add', asyncHandlerArray(addMovie));
+router.put('/:movieId/edit', asyncHandlerArray(editMovie));
 router.delete('/:movieId/remove', asyncHandlerArray(removeMovie));
 
 module.exports = router;

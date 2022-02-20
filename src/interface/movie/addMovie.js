@@ -6,16 +6,22 @@ const addMovieValidation = {
   body: Joi.object({
     movieId: Joi.number().required(),
     hasWatched: Joi.boolean().required(),
-    score: Joi.number().when('hasWatched', {
-      is: Joi.equal(true),
-      then: Joi.required(),
-      otherwise: Joi.optional(),
-    }),
-    review: Joi.string().when('hasWatched', {
-      is: Joi.equal(true),
-      then: Joi.required(),
-      otherwise: Joi.optional(),
-    }),
+    score: Joi.number()
+      .min(1)
+      .max(10)
+      .when('hasWatched', {
+        is: Joi.equal(true),
+        then: Joi.required(),
+        otherwise: Joi.optional(),
+      }),
+    review: Joi.string()
+      .min(3)
+      .max(200)
+      .when('hasWatched', {
+        is: Joi.equal(true),
+        then: Joi.required(),
+        otherwise: Joi.optional(),
+      }),
   }),
 };
 
@@ -23,7 +29,6 @@ async function addMovie(req, res) {
   const { username } = req;
   const { movieId, hasWatched, score, review } = req.body;
   console.log({ movieId, hasWatched, score, review });
-  // return;
   const addedMovie = await Movie.addMovieInList({
     username,
     movieId,

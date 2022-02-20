@@ -13,9 +13,15 @@ _watch.schema = new mongoose.Schema({
     ref: 'Movie'
   },
 
-  score: Number,
+  score: { 
+    type: Number,
+    required: true,
+  },
   
-  review: String,
+  review: {
+    type: String,
+    required: true,
+  },
   
   hasWatched: {
     type: Boolean,

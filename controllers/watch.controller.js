@@ -5,57 +5,7 @@ const { authenticateUser } = require("../utils/authenticate");
 const MovieController = require("./movie.controller");
 
 
-const getMovieList = async (req, res) => {
-  try {
-    const username = req.query.username;
-    let watchLater = false;
-    if (req.query.watch_later && req.query.watch_later === 'true') {
-      watchLater = true;
-    }
-    const query = {
-      username,
-      watch_later: watchLater,
-    }
-    let pageNumber = 1;
-    if (req.query.page_number) {
-      pageNumber = parseInt(req.query.page_number);
-    }
-    var sortKey = {};
-    if (req.query.sort_key && req.query.sort_key === 'score') {
-      sortKey['score'] = -1;
-    } else {
-      sortKey['_id'] = -1;
-    }
 
-    const result = await Watch.aggregate([
-      { $match: query },
-      { $sort: sortKey },
-      { $skip: (pageNumber - 1) * constants.PAGE_SIZE },
-      { $limit: constants.PAGE_SIZE },
-      {
-        $project: {
-          "_id": 0,
-          "user_id": 0
-        }
-      },
-      {
-        $lookup: {
-          from: 'movies',
-          localField: 'movie_id',
-          foreignField: 'movie_id',
-          as: 'movie_details'
-        }
-      },
-      {
-        $unwind: '$movie_details'
-      },
-    ]);
-    res.status(200).send({ success: true, data: result });
-  } catch (err) {
-    console.log(err);
-    res.status(500).send({ success: false, message: 'Internal Server Error' });
-  }
-};
 
 const addMovie = async (req, res) => {
   const user = await authenticateUser(req.cookies.jwt);

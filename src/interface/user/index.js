@@ -1,6 +1,9 @@
 const express = require('express');
 const router = express.Router();
-const { asyncHandler, asyncHandlerArray } = require('./../../utils/asyncHandler');
+const {
+  asyncHandler,
+  asyncHandlerArray,
+} = require('./../../utils/asyncHandler');
 
 const createAccount = require('./createAccount');
 const followUser = require('./followUser');

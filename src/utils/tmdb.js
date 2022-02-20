@@ -29,7 +29,10 @@ class Tmdb {
   }
 
   getGenresFromIds(genreIds) {
-    return genreIds.map((genre_id) => GenreMap.get(genre_id));
+    if(genreIds)
+      return genreIds.map((genre_id) => GenreMap.get(genre_id));
+    else
+      return [];
   }
 
   formatMovie(movie) {

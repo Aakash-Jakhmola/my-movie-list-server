@@ -5,8 +5,8 @@ const Tmdb = require('./../../utils/tmdb');
 const tmdb = new Tmdb();
 
 async function addMovie(movieId) {
-  const movie = tmdb.getMovie(movieId);
-  if(!movie) {
+  const movie = await tmdb.getMovie(movieId);
+  if (!movie) {
     return ErrorHandler.throwError({
       code: 404,
       message: 'Could not find any such movie',

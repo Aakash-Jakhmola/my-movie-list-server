@@ -15,22 +15,41 @@ _movie.schema = new mongoose.Schema({
   },
 
   overview: String,
-  
-  release_date: String,
-  
+
+  releaseDate: String,
+
   runtime: Number,
-  
-  genres: [ String ],
-  
-  vote_average: Number,
-  
-  adult : Boolean,
-  
+
+  genres: [String],
+
+  voteAverage: Number,
+
+  adult: Boolean,
+
   language: String,
-  
-  posterUrl : String,
-  
+
+  posterUrl: String,
 });
+
+_movie.schema.methods.safeObject = function () {
+  const safeFields = [
+    'title',
+    'movieId',
+    'overview',
+    'realeaseDate',
+    'runtime',
+    'voteAverage',
+    'adult',
+    'language',
+    'posterUrl',
+  ];
+  const newSafeObject = {};
+  safeFields.forEach((elem) => {
+    // eslint-disable-next-line security/detect-object-injection
+    newSafeObject[elem] = this[elem];
+  });
+  return newSafeObject;
+};
 
 _movie.model = mongoose.model('Movie', _movie.schema);
 

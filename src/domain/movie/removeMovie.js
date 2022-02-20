@@ -1,39 +1,52 @@
-async function removeMovie() {
+const { User, Watch } = require('../../database/models');
+const ErrorHandler = require('../../utils/errorHandler');
+const mongoose = require('mongoose');
+
+async function removeMovie({ username, movieId, hasWatched }) {
+  const movie = await Watch.findOne({ username, movieId, hasWatched });
+  if (!movie) {
+    return ErrorHandler.throwError({
+      code: 404,
+      message: 'Could not find such movie',
+    });
+  }
+
   const session = await mongoose.startSession();
   const transactionOptions = {
     readPreference: 'primary',
     readConcern: { level: 'local' },
-    writeConcern: { w: 'majority' }
+    writeConcern: { w: 'majority' },
   };
   let list = {};
-  if(query.watch_later) {
-    list['watch_later_count'] = -1;
+  if (hasWatched) {
+    list['watchedMoviesCount'] = -1;
   } else {
-    list['movies_count'] = -1;
+    list['watchLaterMoviesCount'] = -1;
   }
-  try {
-    const transactionResults = await session.withTransaction(async () => {
-      const doc = await Watch.findOneAndDelete(query, {session});
-      if(!doc) {
-        throw new Error('not found');
-      }
-      const res = await User.findOneAndUpdate({username: query.username}, { $inc : list }, {session} );
-      if(!res) {
-        throw new Error('not found');
-      }
-    }, transactionOptions);
 
-    if (transactionResults) {
-      console.log("The transaction was successfully created.");
-    } else {
-      console.log("The transaction was intentionally aborted.");
-      throw new Error('Could not remove due to internal error');
-    }
-  } catch(e) {
-    console.log(e);
-    throw new Error('Could not remove due to internal error');
+  const transactionResults = await session.withTransaction(async () => {
+    await Watch.findOneAndDelete(
+      { username, hasWatched, movieId },
+      { session }
+    );
+    await User.findOneAndUpdate(
+      { username: username },
+      { $inc: list },
+      { session }
+    );
+  }, transactionOptions);
+
+  if (transactionResults) {
+    console.log('Deleted movied successfully.');
+  } else {
+    console.log('Deletion was intentionally aborted.');
+    return ErrorHandler.throwError({
+      code: 500,
+    });
   }
+
   session.endSession();
+  return { message: 'Movie deleted successfully' };
 }
 
 module.exports = removeMovie;

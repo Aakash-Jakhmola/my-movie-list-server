@@ -9,17 +9,20 @@ mongoose.connect(
   dbURI,
   {
     useNewUrlParser: true,
-    useCreateIndex: true, 
-    useUnifiedTopology: true 
-  } , (err) => {
-  if (err) {
-    console.log('DB Error: ', err);
-    throw err;
-  } else {
-    console.log(dbURI);
-    console.log('MongoDB Connected');
+    useCreateIndex: true,
+    useUnifiedTopology: true,
+    useFindAndModify: false,
+  },
+  (err) => {
+    if (err) {
+      console.log('DB Error: ', err);
+      throw err;
+    } else {
+      console.log(dbURI);
+      console.log('MongoDB Connected');
+    }
   }
-});
+);
 
 // CONNECTION EVENTS
 // When successfully connected
@@ -41,10 +44,10 @@ mongoose.connection.on('disconnected', function () {
 process.on('SIGINT', function () {
   mongoose.connection.close(function () {
     console.log(
-      'Mongoose default connection disconnected through app termination',
+      'Mongoose default connection disconnected through app termination'
     );
     throw new Error(
-      'Mongoose default connection disconnected through app termination',
+      'Mongoose default connection disconnected through app termination'
     );
   });
 });

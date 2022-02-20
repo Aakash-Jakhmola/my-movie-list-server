@@ -53,7 +53,6 @@ async function addMovieInList({
 
   if (transactionResults) {
     console.log('Added movie successfully');
-    return { message: 'Added Movie Successfully' };
   } else {
     console.log('Adding Movie transaction was intentionally aborted.');
     return ErrorHandler.throwError({
@@ -61,6 +60,7 @@ async function addMovieInList({
     });
   }
   session.endSession();
+  return { message: 'Added Movie Successfully' };
 }
 
 module.exports = addMovieInList;

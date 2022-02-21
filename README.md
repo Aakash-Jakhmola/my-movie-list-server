@@ -1,9 +1,11 @@
 # my-movies-listiaa
 
-### Frontend Repo : https://github.com/Aakash-Jakhmola/mml-client
+### Frontend Repo 
+* https://github.com/Aakash-Jakhmola/mml-client [old]
+* https://github.com/Aakash-Jakhmola/my-movie-list-client [new]
 ### Deployed App 
-* https://my-movie-list-react.netlify.app
-* https://priceless-hamilton-eafe97.netlify.app/
+* https://my-movie-list-react.netlify.app [old]
+* https://priceless-hamilton-eafe97.netlify.app/ [new]
 
 <br/>
 **My Movie Listiaa** is a project which aims at creating application which enables friends to share and recommend movies and series with each other.

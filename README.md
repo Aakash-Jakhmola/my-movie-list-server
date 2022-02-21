@@ -1,7 +1,11 @@
 # my-movies-listiaa
 
 ### Frontend Repo : https://github.com/Aakash-Jakhmola/mml-client
-### Deployed App : https://my-movie-list-react.netlify.app
+### Deployed App 
+* https://my-movie-list-react.netlify.app
+* https://priceless-hamilton-eafe97.netlify.app/
+
+<br/>
 **My Movie Listiaa** is a project which aims at creating application which enables friends to share and recommend movies and series with each other.
 We use [TheMovieDB](https://www.themoviedb.org) Databse for movies and TV shows.
 

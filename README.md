@@ -8,7 +8,8 @@
 * https://priceless-hamilton-eafe97.netlify.app/ [new]
 
 <br/>
-**My Movie Listiaa** is a project which aims at creating application which enables friends to share and recommend movies and series with each other.
+
+**My Movie List** is a project which enables friends to share and recommend movies and series with each other.
 We use [TheMovieDB](https://www.themoviedb.org) Databse for movies and TV shows.
 
 This repository is backend for **My Movie Listiaa**, written in Nodejs.
@@ -27,20 +28,45 @@ This repository is backend for **My Movie Listiaa**, written in Nodejs.
      ``` 
  - Run command `node app.js`. 
 
-## TODOS
+## Features
 
-This repository is still incomplete and requires following things to be done:\
+* User Authentication ( JWT )
+* User can search for movies
+* User can add movies to his/her lists - Watched & Watch Later List
+  * In watched list, user can give his/her personal score and review of the movie
+* User can share his/her list
+* User can follow others users. 
+* User can be followed by other users.
+* User can see trending movies of the week.
 
-- User authentication.
 
-- Session management.
+## Project Structure 
 
-- Implement ***/users/:userid/recommendations*** route.
+```
 
-- Lots and losts of error handling.
+config/
+    All the configurations that are needed on server
+src/
+    domain/
+        module/
+            all bussiness logic realating to module and interacts with database
+    
+    database/
+        models/
+                Exposes all the Database Models
+    utils/
+        utiliites required
+    interface/
+        module/
+            exposes api endpoints to outside world and gets data from domain
+    app.js (express app)
+    server.js
+package.json
+README.md
+.gitignore
+.eslintrc.js
+.gitignore
+```
 
-- Lots and lots of debugging.
-
-- Implementing countless features we cannot think of right now.
 
 See [DOCS.md](DOCS.md) for documentation.

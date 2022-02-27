@@ -1,11 +1,12 @@
-const { User, Watch } = require('../../database/models');
-const ErrorHandler = require('../../utils/errorHandler');
+const { User, Watch } = require("../../database/models");
+const ErrorHandler = require("../../utils/errorHandler");
+const hasViewerWatched = require("./hasViewerWatched");
 
 async function getMovieList({
   username,
   hasWatched = false,
   offset = 0,
-  sortBy = '_id',
+  sortBy = "_id",
   limit = 20,
   viewer,
 }) {
@@ -18,8 +19,8 @@ async function getMovieList({
     });
   }
 
-  if (sortBy === 'time') {
-    sortBy = '_id';
+  if (sortBy === "time") {
+    sortBy = "_id";
   }
 
   const query = { username, hasWatched };
@@ -36,16 +37,20 @@ async function getMovieList({
     },
     {
       $lookup: {
-        from: 'movies',
-        localField: 'movieId',
-        foreignField: 'movieId',
-        as: 'movieDetails',
+        from: "movies",
+        localField: "movieId",
+        foreignField: "movieId",
+        as: "movieDetails",
       },
     },
-    { $unwind: '$movieDetails' },
+    { $unwind: "$movieDetails" },
   ]);
 
-  return movieList.map((movie) => movie.movieDetails);
+  let result = movieList.map((movie) => movie.movieDetails);
+
+  if (viewer) result = hasViewerWatched(result, viewer);
+
+  return result;
 }
 
 module.exports = getMovieList;

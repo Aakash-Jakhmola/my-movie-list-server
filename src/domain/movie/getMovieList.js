@@ -1,6 +1,6 @@
 const { User, Watch } = require("../../database/models");
 const ErrorHandler = require("../../utils/errorHandler");
-const hasViewerWatched = require("./hasViewerWatched");
+const hasViewerWatched = require("./inViewerList");
 
 async function getMovieList({
   username,

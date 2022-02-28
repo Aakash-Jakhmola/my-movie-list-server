@@ -1,5 +1,5 @@
 const Tmdb = require('./../../utils/tmdb');
-const hasViewerWatched = require('./hasViewerWatched');
+const hasViewerWatched = require('./inViewerList');
 const tmdb = new Tmdb();
 
 async function getTrending(viewer) {

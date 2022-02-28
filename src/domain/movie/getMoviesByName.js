@@ -1,10 +1,11 @@
-const Tmdb = require('./../../utils/tmdb');
+const Tmdb = require("./../../utils/tmdb");
+const inViewerList = require("./inViewerList");
 const tmdb = new Tmdb();
 
 async function getMoviesByName(search, username) {
   const movies = await tmdb.searchMovie(search);
-  // console.log(movies);
-  return movies;
+
+  return inViewerList(movies, username);
 }
 
 module.exports = getMoviesByName;

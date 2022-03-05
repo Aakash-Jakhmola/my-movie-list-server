@@ -11,7 +11,7 @@ const getAccount = require('./getAccount');
 const getFollowers = require('./getFollowers');
 const getFollowing = require('./getFollowing');
 const login = require('./login');
-const loadUser = require('./loadUser';)
+const loadUser = require('./loadUser');
 const unfollowUser = require('./unfollowUser');
 
 router.post('/create', asyncHandlerArray(createAccount));

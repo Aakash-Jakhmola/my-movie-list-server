@@ -1,4 +1,4 @@
-# my-movies-listiaa
+# my-movie-list-server
 
 ### Frontend Repo 
 * https://github.com/Aakash-Jakhmola/mml-client [old]

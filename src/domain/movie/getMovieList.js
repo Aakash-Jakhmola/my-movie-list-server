@@ -1,6 +1,6 @@
 const { User, Watch } = require("../../database/models");
 const ErrorHandler = require("../../utils/errorHandler");
-const hasViewerWatched = require("./hasViewerWatched");
+const inViewerList = require("./inViewerList");
 
 async function getMovieList({
   username,
@@ -48,7 +48,7 @@ async function getMovieList({
 
   let result = movieList.map((movie) => movie.movieDetails);
 
-  if (viewer) result = hasViewerWatched(result, viewer);
+  if (viewer) result = inViewerList(result, viewer);
 
   return result;
 }

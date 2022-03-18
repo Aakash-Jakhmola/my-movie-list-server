@@ -5,6 +5,7 @@
   "main": "app.js",
   "scripts": {
     "start": "nodemon run src/server.js",
+    "dev": "nodemon run src/server.js",
     "test": "jest",
     "lint": "./node_modules/.bin/eslint ./src",
     "lint:fix": "./node_modules/.bin/eslint ./src --fix"

@@ -8,6 +8,7 @@ const {
 const createAccount = require('./createAccount');
 const followUser = require('./followUser');
 const getAccount = require('./getAccount');
+const getFeed = require('./getFeed');
 const getFollowers = require('./getFollowers');
 const getFollowing = require('./getFollowing');
 const login = require('./login');
@@ -18,6 +19,7 @@ router.post('/create', asyncHandlerArray(createAccount));
 router.post('/login', asyncHandlerArray(login));
 router.get('/', asyncHandlerArray(getAccount));
 router.get('/load', asyncHandlerArray(loadUser));
+router.get('/feed', asyncHandlerArray(getFeed));
 router.get('/:username/following', asyncHandlerArray(getFollowing));
 router.get('/:username/followers', asyncHandlerArray(getFollowers));
 router.post('/follow', asyncHandlerArray(followUser));

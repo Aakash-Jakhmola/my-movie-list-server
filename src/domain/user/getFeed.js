@@ -1,12 +1,12 @@
-async function getFeed({ user, offset, limit }) {
- 
-  const followersData = await getFollowing(user.username);
-  const followers = followersData.map((val) =>
-    followers.push(val.following_details.username)
-  );
+const getFollowing = require('./getFollowing');
+const { Watch } = require('../../database/models');
+
+async function getFeed({ username, offset = 0, limit = 10 }) {
+  let following = await getFollowing({ username });
+  following = following.map((f) => f.username);
 
   const result = await Watch.aggregate([
-    { $match: { username: { $in: followers } } },
+    { $match: { username: { $in: following } } },
     { $sort: { _id: -1 } },
     { $skip: offset },
     { $limit: limit },
@@ -14,6 +14,7 @@ async function getFeed({ user, offset, limit }) {
       $project: {
         _id: 0,
         user_id: 0,
+        __v: 0,
       },
     },
     {
@@ -26,7 +27,7 @@ async function getFeed({ user, offset, limit }) {
     },
     { $unwind: '$movieDetails' },
   ]);
-
+  
   return result;
 }
 

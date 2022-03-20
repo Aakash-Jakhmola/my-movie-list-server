@@ -46,7 +46,11 @@ async function getMovieList({
     { $unwind: '$movieDetails' },
   ]);
 
-  let result = movieList.map((movie) => movie.movieDetails);
+  let result = movieList.map((movie) => ({
+    ...movie.movieDetails,
+    score: movie.score,
+    review: movie.review,
+  }));
 
   if (viewer) result = inViewerList(result, viewer);
 

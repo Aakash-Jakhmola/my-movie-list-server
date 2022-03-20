@@ -17,8 +17,8 @@ async function getMovieList(req, res) {
   const result = await Movie.getMovieList({
     username,
     hasWatched: hasWatched === 'true',
-    offset,
-    limit,
+    offset: parseInt(offset, 10) || 0,
+    limit: parseInt(limit, 10) || 20,
     sortBy,
     viewer: req.username,
   });

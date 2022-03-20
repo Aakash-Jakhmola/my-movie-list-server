@@ -11,9 +11,12 @@ const getFeedValidation = {
 
 async function getFeed(req, res) {
   const username = req.username;
-  const offset = parseInt(req.query.offset, 10);
-  const limit = parseInt(req.query.limit, 10);
-  const feed = await User.getFeed({ username, offset, limit });
+  const { offset, limit } = req.query;
+  const feed = await User.getFeed({
+    username,
+    offset: parseInt(offset, 10) || 0,
+    limit: parseInt(limit, 10) || 10,
+  });
   res.json(feed);
 }
 

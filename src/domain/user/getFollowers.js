@@ -11,6 +11,12 @@ function formatFollowers(data) {
   };
 }
 
+async function isFollowing({ follower, following }) {
+  const data = await Follow.findOne({ follower, following });
+  if (data) return true;
+  else return false;
+}
+
 async function getFollowers({ username, viewer }) {
   const followers = await Follow.aggregate([
     { $match: { following: username } },

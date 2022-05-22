@@ -10,7 +10,7 @@ const getFollowingValidation = {
 
 async function getFollowing(req, res) {
   const { username } = req.params;
-  const { viewer } = req.query;
+  const viewer = req.username;
 
   const following = await User.getFollowing({ username, viewer });
 

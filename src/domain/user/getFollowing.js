@@ -8,7 +8,17 @@ function formatFollowing(data) {
     followersCount: data.following.followersCount,
     followingCount: data.following.followingCount,
     firstname: data.following.firstname,
+    isViewerFollowing: data.isViewerFollowing,
+    isViewerFollowed: data.isViewerFollowed,
   };
+}
+
+async function isFollowing(follower, following) {
+  if (!follower || !following) return false;
+  console.log({ follower, following });
+  const data = await Follow.findOne({ follower, following });
+  if (data) return true;
+  else return false;
 }
 
 async function getFollowing({ username, viewer }) {
@@ -32,7 +42,15 @@ async function getFollowing({ username, viewer }) {
     { $unwind: '$following' },
   ]);
 
-  return following.map((f) => formatFollowing(f));
+  return await Promise.all(
+    following.map(async (f) =>
+      formatFollowing({
+        ...f,
+        isViewerFollowing: await isFollowing(viewer, f.following.username),
+        isViewerFollowed: await isFollowing(f.following.username, viewer),
+      }),
+    ),
+  );
 }
 
 module.exports = getFollowing;

@@ -15,7 +15,6 @@ function formatFollowers(data) {
 
 async function isFollowing(follower, following) {
   if (!follower || !following) return false;
-  console.log({ follower, following });
   const data = await Follow.findOne({ follower, following });
   if (data) return true;
   else return false;
